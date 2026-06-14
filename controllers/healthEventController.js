@@ -1,4 +1,5 @@
 const HealthEvent = require('../models/HealthEvent');
+const HealthQueue = require('../models/HealthQueue');
 const asyncHandler = require('../utils/asyncHandler');
 const { createHttpError } = require('../utils/httpError');
 
@@ -110,10 +111,24 @@ const toggleQueue = asyncHandler(async (req, res) => {
     res.json({ success: true, message: `Queue ${event.isQueueOpen ? 'opened' : 'closed'}`, data: event });
 });
 
+const deleteEvent = asyncHandler(async (req, res) => {
+    const event = await HealthEvent.findById(req.params.id);
+    if (!event) throw createHttpError(404, 'Event not found');
+
+    const queueRecordCount = await HealthQueue.countDocuments({ eventId: event._id });
+    if (queueRecordCount > 0) {
+        throw createHttpError(409, 'This event already has queue records and cannot be deleted. Mark it as cancelled to preserve its history.');
+    }
+
+    await event.deleteOne();
+    res.json({ success: true, message: 'Health event deleted' });
+});
+
 module.exports = {
     createEvent,
     listEvents,
     getEvent,
     updateEvent,
-    toggleQueue
+    toggleQueue,
+    deleteEvent
 };

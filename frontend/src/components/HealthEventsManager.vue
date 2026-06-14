@@ -55,6 +55,10 @@
             <i class="fa-solid fa-pen"></i>
             {{ t('common.ui.edit') }}
           </button>
+          <button class="ghost-button danger-button" type="button" @click="deleteEvent(ev)" :disabled="deletingId === ev._id">
+            <i :class="deletingId === ev._id ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-trash'"></i>
+            {{ deletingId === ev._id ? 'Deleting...' : t('common.ui.delete') }}
+          </button>
         </div>
       </article>
     </div>
@@ -70,6 +74,7 @@ const { t } = useI18n();
 const events = ref([]);
 const loading = ref(false);
 const saving = ref(false);
+const deletingId = ref('');
 const editingId = ref('');
 const blankForm = () => ({ title: '', prefix: '', eventDate: '', startTime: '', endTime: '', description: '' });
 const form = ref(blankForm());
@@ -120,6 +125,21 @@ const editEvent = (ev) => {
     description: ev.description || ''
   };
 };
+
+const deleteEvent = async (ev) => {
+  if (!globalThis.confirm(`Delete the scheduled event "${ev.title}"?`)) return;
+
+  deletingId.value = ev._id;
+  try {
+    await apiFetch(`/api/health-events/${ev._id}`, { method: 'DELETE' });
+    if (editingId.value === ev._id) resetForm();
+    await load();
+  } catch (error) {
+    globalThis.alert(error.message || 'Failed to delete health event.');
+  } finally {
+    deletingId.value = '';
+  }
+};
 </script>
 
 <style scoped>
@@ -139,6 +159,8 @@ const editEvent = (ev) => {
 .event-description { margin: 4px 0 0; color: #42554b; }
 .queue-pill { border-radius: 999px; padding: 3px 8px; background: #eef2f0; color: #52635a; font-size: 0.78rem; font-weight: 700; }
 .queue-pill.open { background: #dff4e7; color: #166338; }
+.danger-button { color: #b42318; border-color: #efc5c0; }
+.danger-button:hover { background: #fff1ef; border-color: #d92d20; }
 .empty-state { padding: 20px; text-align: center; color: #66736d; border: 1px dashed #d9e3de; border-radius: 8px; }
 .fine-print { color: #666; font-size: 0.9rem; }
 @media (max-width: 720px) {

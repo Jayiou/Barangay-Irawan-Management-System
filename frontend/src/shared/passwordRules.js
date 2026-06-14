@@ -1,7 +1,6 @@
 export const PASSWORD_REQUIREMENTS_MESSAGE = 'Password must be at least 8 characters and include uppercase, lowercase, number, and a special character (_ | @ $ ! % * ? &).';
 
 const PASSWORD_SPECIAL_CHAR_REGEX = /[_|@$!%*?&]/;
-const PASSWORD_ALLOWED_CHARS_REGEX = /^[A-Za-z\d_|@$!%*?&]*$/;
 
 export const getPasswordRequirementRules = (password, confirmPassword = null) => {
     const value = String(password || '');
@@ -10,8 +9,7 @@ export const getPasswordRequirementRules = (password, confirmPassword = null) =>
         { key: 'uppercase', label: 'At least 1 uppercase letter (A-Z)', passed: /[A-Z]/.test(value) },
         { key: 'lowercase', label: 'At least 1 lowercase letter (a-z)', passed: /[a-z]/.test(value) },
         { key: 'number', label: 'At least 1 number (0-9)', passed: /\d/.test(value) },
-        { key: 'special', label: 'At least 1 special character (_ | @ $ ! % * ? &)', passed: PASSWORD_SPECIAL_CHAR_REGEX.test(value) },
-        { key: 'allowed-chars', label: 'Letters, numbers, and _ | @ $ ! % * ? & only', passed: PASSWORD_ALLOWED_CHARS_REGEX.test(value) }
+        { key: 'special', label: 'At least 1 special character (_ | @ $ ! % * ? &)', passed: PASSWORD_SPECIAL_CHAR_REGEX.test(value) }
     ];
 
     if (confirmPassword !== null) {
