@@ -8,6 +8,7 @@ const path = require('node:path');
 const asyncHandler = require('../utils/asyncHandler');
 const { createHttpError } = require('../utils/httpError');
 const mailer = require('../utils/mailer');
+const { sendOtpSMS } = require('../utils/sms');
 const s3 = require('../utils/s3');
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -334,6 +335,7 @@ exports.register = asyncHandler(async (req, res) => {
 
     // 8. Send Email (Do not await so UI doesn't hang on server timeouts)
     mailer.sendOtpEmail(normalizedEmail, otpCode, firstName).catch(e => console.error("Email send failed in background:", e));
+    sendOtpSMS(normalizedContactNumber, otpCode).catch(e => console.error("SMS send failed in background:", e));
     
     // FOR RENDER DEPLOYMENTS: Since free Render blocks SMTP emails, log it here so you can test it
     console.log(`\n==============================================`);
@@ -437,7 +439,11 @@ exports.resendOtp = asyncHandler(async (req, res) => {
     user.otpCode = await hashOtp(otpCode);
     user.otpExpires = createOtpExpiry();
     await user.save();
-    await mailer.sendOtpEmail(user.email, otpCode, user.username);
+    const pendingContactNumber = user.pendingResidentProfile?.contactNumber || '';
+    await Promise.allSettled([
+        mailer.sendOtpEmail(user.email, otpCode, user.username),
+        pendingContactNumber ? sendOtpSMS(pendingContactNumber, otpCode) : Promise.resolve()
+    ]);
 
     // FOR TESTING/RENDER: Log terminal check
     console.log(`\n==============================================`);

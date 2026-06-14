@@ -15,7 +15,11 @@ const smsLogSchema = new mongoose.Schema(
                 'resident_update',
                 'appointment_confirmation',
                 'facility_reservation',
-                'report_status'
+                'report_status',
+                'manpower_status',
+                'registration_otp',
+                'health_queue',
+                'disaster_advisory'
             ],
             required: true
         },
@@ -60,7 +64,7 @@ const smsLogSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ['sent', 'failed'],
+            enum: ['sent', 'failed', 'mocked'],
             default: 'sent'
         }
     },

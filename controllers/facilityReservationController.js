@@ -5,6 +5,7 @@ const { createHttpError } = require('../utils/httpError');
 const { isValidTransition } = require('../utils/statusWorkflows');
 const { logStatusChange } = require('../utils/statusLogger');
 const { sendRequestStatusEmail } = require('../utils/mailer');
+const { sendRequestStatusSMS } = require('../utils/sms');
 
 const reservationFields = [
     'facilityName',
@@ -925,6 +926,14 @@ exports.updateFacilityReservationStatus = asyncHandler(async (req, res) => {
             statusData.adminNotes || '',
             buildReservationEmailDetails(populatedReservation, statusData.status)
         );
+    }
+    const recipientPhone = populatedReservation.contactNumber || populatedReservation.residentId?.contactNumber;
+    if (recipientPhone) {
+        await sendRequestStatusSMS(recipientPhone, getReservationRequesterName(populatedReservation), 'facility reservation', statusData.status, {
+            messageType: 'facility_reservation',
+            recipientId: populatedReservation.residentId?._id,
+            referenceId: String(populatedReservation._id || '')
+        });
     }
 
     res.json(populatedReservation);

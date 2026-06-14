@@ -3,6 +3,7 @@ const Resident = require('../models/Resident');
 const asyncHandler = require('../utils/asyncHandler');
 const { createHttpError } = require('../utils/httpError');
 const { sendDisasterAdvisoryEmail } = require('../utils/mailer');
+const { sendSmsNotification } = require('../utils/sms');
 const { persistPublicUpload } = require('../utils/publicUploadStorage');
 
 const ALLOWED_DISASTER_TYPES = new Set(['typhoon', 'flood', 'landslide']);
@@ -58,8 +59,8 @@ const findResidentsForFloodProneAreas = async (floodProneAreas = []) => {
     });
 
     return residents.filter((resident) => {
-        const email = resident.email || resident.userId?.email;
-        return email && resident.userId?.role === 'resident' && resident.userId?.isActive !== false && matchesArea(resident);
+        const hasContact = resident.email || resident.userId?.email || resident.contactNumber;
+        return hasContact && resident.userId?.role === 'resident' && resident.userId?.isActive !== false && matchesArea(resident);
     });
 };
 
@@ -76,15 +77,23 @@ const notifyResidentsForAdvisory = async (advisory) => {
 
     const uniqueRecipients = new Map();
     for (const resident of recipients) {
-        const email = String(resident.email || resident.userId?.email || '').trim().toLowerCase();
-        if (email && !uniqueRecipients.has(email)) {
-            uniqueRecipients.set(email, resident);
-        }
+        const key = String(resident._id || resident.contactNumber || resident.email || resident.userId?.email || '');
+        if (key && !uniqueRecipients.has(key)) uniqueRecipients.set(key, resident);
     }
 
-    await Promise.allSettled([...uniqueRecipients.entries()].map(([email, resident]) => (
-        sendDisasterAdvisoryEmail(email, getResidentName(resident), advisory, details)
-    )));
+    const notifications = [];
+    for (const resident of uniqueRecipients.values()) {
+        const email = String(resident.email || resident.userId?.email || '').trim().toLowerCase();
+        if (email) notifications.push(sendDisasterAdvisoryEmail(email, getResidentName(resident), advisory, details));
+        if (resident.contactNumber) notifications.push(sendSmsNotification({
+            phoneNumber: resident.contactNumber,
+            messageType: 'disaster_advisory',
+            messageContent: `Brgy Irawan ALERT: ${advisory.title}. Affected: ${advisory.floodProneAreas?.join(', ') || 'See advisory'}. Evacuation: ${advisory.evacuationCenters?.join(', ') || 'TBA'}.`,
+            recipientId: resident._id,
+            referenceId: String(advisory._id || '')
+        }));
+    }
+    await Promise.allSettled(notifications);
 
     return {
         notifiedResidentCount: uniqueRecipients.size,

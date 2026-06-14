@@ -5,6 +5,7 @@ const User = require('../models/User');
 const asyncHandler = require('../utils/asyncHandler');
 const { createHttpError } = require('../utils/httpError');
 const mailer = require('../utils/mailer');
+const { sendSmsNotification } = require('../utils/sms');
 
 const pad = (n, width = 3) => String(n).padStart(width, '0');
 const TERMINAL_QUEUE_STATUSES = ['completed', 'no-show', 'cancelled'];
@@ -131,10 +132,19 @@ const notifyQueueTurn = async (entry, eventId) => {
             message
         )
         : { sent: false, skipped: true, reason: 'missing_email' };
+    const smsResult = entry.contactNumber
+        ? await sendSmsNotification({
+            phoneNumber: entry.contactNumber,
+            messageType: 'health_queue',
+            messageContent: message,
+            recipientId: entry.residentId,
+            referenceId: String(eventId || '')
+        })
+        : { sent: false, skipped: true, reason: 'missing_phone' };
 
-    entry.notifiedTurn = Boolean(emailResult?.sent);
+    entry.notifiedTurn = Boolean(emailResult?.sent || smsResult?.sent);
     await entry.save();
-    return { email: emailResult };
+    return { email: emailResult, sms: smsResult };
 };
 
 const notifyNextInLine = async (eventId) => {
@@ -155,10 +165,19 @@ const notifyNextInLine = async (eventId) => {
             message
         )
         : { sent: false, skipped: true, reason: 'missing_email' };
+    const smsResult = entry.contactNumber
+        ? await sendSmsNotification({
+            phoneNumber: entry.contactNumber,
+            messageType: 'health_queue',
+            messageContent: message,
+            recipientId: entry.residentId,
+            referenceId: String(eventId || '')
+        })
+        : { sent: false, skipped: true, reason: 'missing_phone' };
 
-    entry.notifiedApproaching = Boolean(emailResult?.sent);
+    entry.notifiedApproaching = Boolean(emailResult?.sent || smsResult?.sent);
     await entry.save();
-    return { entry, email: emailResult };
+    return { entry, email: emailResult, sms: smsResult };
 };
 
 const sendQueueJoinConfirmation = async (entry, event) => {
@@ -181,8 +200,17 @@ const sendQueueJoinConfirmation = async (entry, event) => {
             message
         )
         : { sent: false, skipped: true, reason: 'missing_email' };
+    const smsResult = entry.contactNumber
+        ? await sendSmsNotification({
+            phoneNumber: entry.contactNumber,
+            messageType: 'health_queue',
+            messageContent: message,
+            recipientId: entry.residentId,
+            referenceId: String(event._id || '')
+        })
+        : { sent: false, skipped: true, reason: 'missing_phone' };
 
-    return { email: emailResult, waitingAhead };
+    return { email: emailResult, sms: smsResult, waitingAhead };
 };
 
 const reserveQueueNumber = async (event, payload, attempts = 3) => {

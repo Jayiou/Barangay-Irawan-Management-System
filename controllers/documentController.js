@@ -4,6 +4,7 @@ const fsSync = require('node:fs');
 const { pathToFileURL } = require('node:url');
 const { ensureDirectory, publicUploadDirectory } = require('../utils/uploadPaths');
 const { sendDocumentStatusEmail, sendGeneratedDocumentEmail } = require('../utils/mailer');
+const { sendDocumentStatusSMS } = require('../utils/sms');
 const { createDocumentPdfBuffer } = require('../utils/documentPdfGenerator');
 const StatusAuditLog = require('../models/StatusAuditLog');
 const DocumentRequest = require('../models/DocumentRequest');
@@ -56,16 +57,18 @@ const buildDocumentEmailDetails = (doc, status) => [
 const notifyDocumentStatus = async (doc, status, notes = '') => {
   const resident = doc?.resident;
   const recipientEmail = resident?.email || resident?.userId?.email || '';
-  if (!recipientEmail) return;
+  const recipientPhone = resident?.contactNumber || doc?.contactNumber || '';
+  const name = getResidentName(resident);
+  const notifications = [];
 
-  await sendDocumentStatusEmail(
-    recipientEmail,
-    getResidentName(resident),
-    doc.type,
-    status,
-    notes,
-    buildDocumentEmailDetails(doc, status)
-  );
+  if (recipientEmail) notifications.push(sendDocumentStatusEmail(
+    recipientEmail, name, doc.type, status, notes, buildDocumentEmailDetails(doc, status)
+  ));
+  if (recipientPhone) notifications.push(sendDocumentStatusSMS(
+    recipientPhone, name, doc.type, status, String(doc?._id || '')
+  ));
+
+  await Promise.allSettled(notifications);
 };
 
 const isObjectLike = (value) => value && typeof value === 'object';

@@ -277,3 +277,106 @@ test('sendSmsNotification uses messagingServiceSid when configured', async () =>
     assert.equal(createCalls[0].from, undefined);
     assert.equal(createCalls[0].to, '+639300625493');
 });
+
+test('sendSmsNotification sends through IPROG and records the message ID', async () => {
+    const fetchCalls = [];
+    const fakeFetch = async (url, options) => {
+        fetchCalls.push({ url, options });
+        return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+                status: 200,
+                message: 'Queued',
+                message_id: 'iSms-XHYBk'
+            })
+        };
+    };
+
+    sms.configureSmsRuntime({
+        env: {
+            SMS_ENABLED: 'true',
+            SMS_PROVIDER: 'iprog',
+            IPROG_API_TOKEN: 'secret-token'
+        },
+        smsLogModel: FakeSmsLog,
+        fetch: fakeFetch,
+        logger
+    });
+
+    const result = await sms.sendSmsNotification({
+        phoneNumber: '09300620000',
+        messageType: 'resident_update',
+        messageContent: 'Brgy Irawan: Your account was updated.'
+    });
+
+    assert.equal(result.sent, true);
+    assert.equal(result.provider, 'iprog');
+    assert.equal(result.messageId, 'iSms-XHYBk');
+    assert.equal(fetchCalls.length, 1);
+    assert.equal(fetchCalls[0].url, 'https://www.iprogsms.com/api/v1/sms_messages');
+    assert.deepEqual(JSON.parse(fetchCalls[0].options.body), {
+        api_token: 'secret-token',
+        phone_number: '639300620000',
+        message: 'Brgy Irawan: Your account was updated.'
+    });
+    assert.equal(FakeSmsLog.records[0].provider, 'iprog');
+    assert.equal(FakeSmsLog.records[0].providerMessageId, 'iSms-XHYBk');
+});
+
+test('sendSmsNotification reports missing IPROG token without making a request', async () => {
+    let fetchCalled = false;
+    sms.configureSmsRuntime({
+        env: {
+            SMS_ENABLED: 'true',
+            SMS_PROVIDER: 'iprog'
+        },
+        smsLogModel: FakeSmsLog,
+        fetch: async () => {
+            fetchCalled = true;
+        },
+        logger
+    });
+
+    const result = await sms.sendSmsNotification({
+        phoneNumber: '09300620000',
+        messageType: 'resident_update',
+        messageContent: 'Test'
+    });
+
+    assert.equal(result.sent, false);
+    assert.equal(result.reason, 'missing_config');
+    assert.equal(fetchCalled, false);
+    assert.equal(FakeSmsLog.records[0].provider, 'iprog');
+    assert.match(FakeSmsLog.records[0].providerError, /IPROG SMS credentials/i);
+});
+
+test('sendSmsNotification records an IPROG API rejection', async () => {
+    sms.configureSmsRuntime({
+        env: {
+            SMS_ENABLED: 'true',
+            SMS_PROVIDER: 'iprog',
+            IPROG_API_TOKEN: 'invalid-token'
+        },
+        smsLogModel: FakeSmsLog,
+        fetch: async () => ({
+            ok: false,
+            status: 401,
+            json: async () => ({ status: 500, message: 'Invalid Token' })
+        }),
+        logger
+    });
+
+    const result = await sms.sendSmsNotification({
+        phoneNumber: '09300620000',
+        messageType: 'resident_update',
+        messageContent: 'Test'
+    });
+
+    assert.equal(result.sent, false);
+    assert.equal(FakeSmsLog.records[0].status, 'failed');
+    assert.equal(FakeSmsLog.records[0].provider, 'iprog');
+    assert.equal(FakeSmsLog.records[0].providerStatus, '401');
+    assert.equal(FakeSmsLog.records[0].providerError, 'Invalid Token');
+    assert.equal(FakeSmsLog.records[0].providerErrorCode, '500');
+});

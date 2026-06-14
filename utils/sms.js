@@ -5,6 +5,7 @@ const smsRuntime = {
     env: process.env,
     logger: console,
     smsLogModel: SMSLog,
+    fetch: null,
     twilioClientFactory: null,
     twilioClient: null
 };
@@ -17,6 +18,7 @@ const resetSmsRuntime = () => {
     smsRuntime.env = process.env;
     smsRuntime.logger = console;
     smsRuntime.smsLogModel = SMSLog;
+    smsRuntime.fetch = null;
     smsRuntime.twilioClientFactory = null;
     smsRuntime.twilioClient = null;
 };
@@ -89,8 +91,23 @@ const toE164PhoneNumber = (value) => {
     return candidate;
 };
 
+const getSmsProvider = () => String(getEnv().SMS_PROVIDER || getEnv().SMS_MODE || 'twilio').trim().toLowerCase();
 const isSmsEnabled = () => String(getEnv().SMS_ENABLED || '').toLowerCase() === 'true';
-const isSmsMockEnabled = () => String(getEnv().SMS_MOCK || '').toLowerCase() === 'true';
+const isSmsMockEnabled = () => String(getEnv().SMS_MOCK || '').toLowerCase() === 'true' || getSmsProvider() === 'mock';
+
+const getIprogConfig = () => {
+    const env = getEnv();
+    const apiToken = String(env.IPROG_API_TOKEN || '').trim();
+    const endpoint = String(env.IPROG_SMS_ENDPOINT || 'https://www.iprogsms.com/api/v1/sms_messages').trim();
+    const smsProvider = String(env.IPROG_SMS_PROVIDER || '').trim();
+
+    return {
+        apiToken,
+        endpoint,
+        smsProvider,
+        isConfigured: Boolean(apiToken && endpoint)
+    };
+};
 
 const getTwilioConfig = () => {
     const env = getEnv();
@@ -172,7 +189,7 @@ const buildTwilioMessagePayload = (twilioConfig, finalPhoneNumber, truncatedMess
 const getSmsProviderErrorDetails = (error) => {
     const providerStatus = error?.status ? String(error.status) : 'error';
     const providerErrorCode = error?.code === undefined || error?.code === null ? '' : String(error.code);
-    let providerError = 'Unknown Twilio error';
+    let providerError = 'Unknown SMS provider error';
 
     if (error?.code === 21612) {
         providerError = 'Twilio rejected the sender/recipient combination. Use a Messaging Service sender allowed for the destination country.';
@@ -184,6 +201,48 @@ const getSmsProviderErrorDetails = (error) => {
         providerStatus,
         providerError,
         providerErrorCode
+    };
+};
+
+const sendWithIprog = async (finalPhoneNumber, truncatedMessage) => {
+    const config = getIprogConfig();
+    const fetchImpl = smsRuntime.fetch || globalThis.fetch;
+
+    if (typeof fetchImpl !== 'function') {
+        const error = new Error('The server runtime does not support fetch');
+        error.code = 'FETCH_UNAVAILABLE';
+        throw error;
+    }
+
+    const payload = {
+        api_token: config.apiToken,
+        phone_number: finalPhoneNumber.replace(/^\+/, ''),
+        message: truncatedMessage
+    };
+
+    if (config.smsProvider) {
+        payload.sms_provider = Number(config.smsProvider);
+    }
+
+    const response = await fetchImpl(config.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    const responseBody = await response.json().catch(() => ({}));
+    const apiStatus = responseBody?.status;
+    const accepted = response.ok && (apiStatus === 200 || String(apiStatus).toLowerCase() === 'success');
+
+    if (!accepted) {
+        const error = new Error(responseBody?.message || `IPROG SMS request failed with HTTP ${response.status}`);
+        error.status = response.status;
+        error.code = responseBody?.code || apiStatus || response.status;
+        throw error;
+    }
+
+    return {
+        messageId: responseBody?.message_id || '',
+        status: 'queued'
     };
 };
 
@@ -220,17 +279,20 @@ const sendSmsNotification = async ({
     }
 
     if (smsMock) {
-        await saveSmsLog({
-            phoneNumber: finalPhoneNumber,
-            messageType,
-            messageContent: truncatedMessage,
-            recipientId,
-            referenceId,
-            status: 'mocked',
-            provider: 'mock',
-            providerMessageId: 'mocked',
-            providerStatus: 'mock'
-        });
+        // Persist mocked sends only when a test/runtime explicitly supplies a log model.
+        if (smsRuntime.smsLogModel !== SMSLog) {
+            await saveSmsLog({
+                phoneNumber: finalPhoneNumber,
+                messageType,
+                messageContent: truncatedMessage,
+                recipientId,
+                referenceId,
+                status: 'mocked',
+                provider: 'mock',
+                providerMessageId: 'mocked',
+                providerStatus: 'mock'
+            });
+        }
         logAtLevel('log', `[SMS] Mock SMS send for ${messageType} to ${finalPhoneNumber}`);
         return {
             sent: true,
@@ -242,9 +304,11 @@ const sendSmsNotification = async ({
         };
     }
 
-    const twilioConfig = getTwilioConfig();
-    if (!twilioConfig.isConfigured) {
-        const errorMessage = 'Twilio credentials are missing or incomplete';
+    const provider = getSmsProvider();
+    const providerConfig = provider === 'iprog' ? getIprogConfig() : getTwilioConfig();
+    if (!providerConfig.isConfigured) {
+        const providerName = provider === 'iprog' ? 'IPROG SMS' : 'Twilio';
+        const errorMessage = `${providerName} credentials are missing or incomplete`;
         await saveSmsLog({
             phoneNumber: finalPhoneNumber,
             messageType,
@@ -252,16 +316,28 @@ const sendSmsNotification = async ({
             recipientId,
             referenceId,
             status: 'failed',
+            provider,
             providerStatus: 'missing_config',
             providerError: errorMessage
         });
-        logAtLevel('warn', '[SMS] Twilio credentials are missing or incomplete. SMS send skipped.');
+        logAtLevel('warn', `[SMS] ${errorMessage}. SMS send skipped.`);
         return { sent: false, skipped: true, reason: 'missing_config' };
     }
 
     try {
-        const client = getTwilioClient();
-        const result = await client.messages.create(buildTwilioMessagePayload(twilioConfig, finalPhoneNumber, truncatedMessage));
+        let providerMessageId = '';
+        let providerStatus = 'queued';
+
+        if (provider === 'iprog') {
+            const result = await sendWithIprog(finalPhoneNumber, truncatedMessage);
+            providerMessageId = result.messageId;
+            providerStatus = result.status;
+        } else {
+            const client = getTwilioClient();
+            const result = await client.messages.create(buildTwilioMessagePayload(providerConfig, finalPhoneNumber, truncatedMessage));
+            providerMessageId = result?.sid || '';
+            providerStatus = result?.status || 'queued';
+        }
 
         await saveSmsLog({
             phoneNumber: finalPhoneNumber,
@@ -270,16 +346,19 @@ const sendSmsNotification = async ({
             recipientId,
             referenceId,
             status: 'sent',
-            providerMessageId: result?.sid || '',
-            providerStatus: result?.status || 'queued'
+            provider,
+            providerMessageId,
+            providerStatus
         });
 
-        const sidText = result?.sid ? ' (SID: ' + result.sid + ')' : '';
-        logAtLevel('log', `[SMS] ${messageType} sent to ${finalPhoneNumber}${sidText}`);
+        const idText = providerMessageId ? ' (ID: ' + providerMessageId + ')' : '';
+        logAtLevel('log', `[SMS] ${messageType} sent through ${provider} to ${finalPhoneNumber}${idText}`);
         return {
             sent: true,
-            messageSid: result?.sid || '',
-            providerStatus: result?.status || 'queued',
+            provider,
+            messageId: providerMessageId,
+            messageSid: provider === 'twilio' ? providerMessageId : '',
+            providerStatus,
             messageContent: truncatedMessage
         };
     } catch (error) {
@@ -296,6 +375,7 @@ const sendSmsNotification = async ({
             recipientId,
             referenceId,
             status: 'failed',
+            provider,
             providerStatus,
             providerError,
             providerErrorCode
@@ -361,11 +441,33 @@ const sendAppointmentSMS = async (phoneNumber, name, appointmentDate, appointmen
     });
 };
 
+const sendRequestStatusSMS = async (phoneNumber, name, requestLabel, status, options = {}) => {
+    const humanStatus = formatLabel(status);
+    const referenceText = options.referenceId ? ` Ref: ${options.referenceId}` : '';
+    const messageContent = `Brgy Irawan: Hi ${name}, your ${requestLabel} is ${humanStatus}. Please check your email for full details.${referenceText}`;
+
+    return sendSmsNotification({
+        phoneNumber,
+        messageType: options.messageType || 'resident_update',
+        messageContent,
+        recipientId: options.recipientId,
+        referenceId: options.referenceId || ''
+    });
+};
+
+const sendOtpSMS = async (phoneNumber, otpCode) => sendSmsNotification({
+    phoneNumber,
+    messageType: 'registration_otp',
+    messageContent: `Brgy Irawan: Your registration OTP is ${otpCode}. It expires in 10 minutes. Do not share this code.`
+});
+
 module.exports = {
     sendSmsNotification,
     sendDocumentStatusSMS,
     sendStatusUpdateSMS,
     sendAppointmentSMS,
+    sendRequestStatusSMS,
+    sendOtpSMS,
     formatLabel,
     truncateToSingleSegment,
     configureSmsRuntime,

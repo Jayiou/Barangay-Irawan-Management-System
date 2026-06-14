@@ -5,6 +5,7 @@ const Resident = require('../models/Resident');
 const asyncHandler = require('../utils/asyncHandler');
 const { createHttpError } = require('../utils/httpError');
 const { sendRequestStatusEmail } = require('../utils/mailer');
+const { sendRequestStatusSMS } = require('../utils/sms');
 const { logStatusChange } = require('../utils/statusLogger');
 const { persistPublicUpload } = require('../utils/publicUploadStorage');
 const { normalizePublicUploadUrl } = require('../utils/uploadPaths');
@@ -105,16 +106,23 @@ const logAppointmentStatusChange = async (appointment, previousStatus, newStatus
 
 const notifyAppointmentStatus = async (appointment, status, notes = '') => {
     const recipientEmail = getAppointmentRecipientEmail(appointment);
-    if (!recipientEmail) return;
-
-    await sendRequestStatusEmail(
+    const recipientPhone = appointment?.contactNumber || appointment?.residentId?.contactNumber || '';
+    const name = getAppointmentRequesterName(appointment);
+    const notifications = [];
+    if (recipientEmail) notifications.push(sendRequestStatusEmail(
         recipientEmail,
-        getAppointmentRequesterName(appointment),
+        name,
         'appointment',
         status,
         notes,
         buildAppointmentEmailDetails(appointment, status)
-    );
+    ));
+    if (recipientPhone) notifications.push(sendRequestStatusSMS(recipientPhone, name, 'appointment', status, {
+        messageType: 'appointment_confirmation',
+        recipientId: appointment?.residentId?._id || appointment?.residentId,
+        referenceId: String(appointment?._id || '')
+    }));
+    await Promise.allSettled(notifications);
 };
 
 const isDuplicateSlotError = (error) => (

@@ -5,6 +5,7 @@ const { createHttpError } = require('../utils/httpError');
 const { isValidTransition } = require('../utils/statusWorkflows');
 const { logStatusChange } = require('../utils/statusLogger');
 const { sendRequestStatusEmail } = require('../utils/mailer');
+const { sendRequestStatusSMS } = require('../utils/sms');
 const { getReportTypeRule } = require('../utils/reportTypeConfig');
 const { persistPublicUploads } = require('../utils/publicUploadStorage');
 
@@ -497,6 +498,14 @@ exports.updateReportStatus = asyncHandler(async (req, res) => {
             statusData.adminNotes || '',
             buildReportEmailDetails(populatedReport, statusData.status)
         );
+    }
+    const recipientPhone = populatedReport.contactNumber || populatedReport.residentId?.contactNumber;
+    if (recipientPhone) {
+        await sendRequestStatusSMS(recipientPhone, getReportRequesterName(populatedReport), 'report', statusData.status, {
+            messageType: 'report_status',
+            recipientId: populatedReport.residentId?._id,
+            referenceId: String(populatedReport._id || '')
+        });
     }
 
     res.json(populatedReport);

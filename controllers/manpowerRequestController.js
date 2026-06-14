@@ -5,6 +5,7 @@ const { createHttpError } = require('../utils/httpError');
 const { isValidTransition } = require('../utils/statusWorkflows');
 const { logStatusChange } = require('../utils/statusLogger');
 const { sendRequestStatusEmail } = require('../utils/mailer');
+const { sendRequestStatusSMS } = require('../utils/sms');
 
 const requestFields = [
     'assistanceType',
@@ -313,6 +314,14 @@ exports.updateRequestStatus = asyncHandler(async (req, res) => {
             statusData.adminNotes || '',
             buildRequestEmailDetails(populatedRequest, statusData.status)
         );
+    }
+    const recipientPhone = populatedRequest.contactNumber || populatedRequest.residentId?.contactNumber;
+    if (recipientPhone) {
+        await sendRequestStatusSMS(recipientPhone, getRequesterName(populatedRequest), 'manpower request', statusData.status, {
+            messageType: 'manpower_status',
+            recipientId: populatedRequest.residentId?._id,
+            referenceId: String(populatedRequest._id || '')
+        });
     }
 
     res.json(populatedRequest);

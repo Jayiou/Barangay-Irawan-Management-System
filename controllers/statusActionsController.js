@@ -99,10 +99,8 @@ const buildDocumentEmailDetails = (documentRequest, status) => [
 
 const notifyRequestStatus = async (record, requestLabel, status, notes = '', details = []) => {
     const recipientEmail = getRecipientEmail(record);
-    if (!recipientEmail) return;
-
     const requester = record?.residentId || record?.resident || record;
-    await sendRequestStatusEmail(
+    if (recipientEmail) await sendRequestStatusEmail(
         recipientEmail,
         getPersonName(requester, 'Resident'),
         requestLabel,
@@ -141,11 +139,9 @@ const notifyRequestStatus = async (record, requestLabel, status, notes = '', det
 
 const notifyDocumentStatus = async (documentRequest, status, notes = '') => {
     const recipientEmail = getRecipientEmail(documentRequest);
-    if (!recipientEmail) return;
-
     const recipientPhone = documentRequest?.resident?.contactNumber || documentRequest?.contactNumber || '';
 
-    await sendDocumentStatusEmail(
+    if (recipientEmail) await sendDocumentStatusEmail(
         recipientEmail,
         getPersonName(documentRequest.resident, 'Resident'),
         documentRequest.type,
