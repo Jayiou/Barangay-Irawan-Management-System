@@ -947,6 +947,8 @@
                                 <option value="certificate">{{ t('common.ui.barangayCertificate') }}</option>
                                 <option value="clearance">{{ t('common.ui.barangayClearance') }}</option>
                                 <option value="indigency">{{ t('common.ui.barangayIndigency') }}</option>
+                                <option value="barangay_id">{{ t('common.ui.barangayId') }}</option>
+                                <option value="other">{{ t('common.ui.otherRequest') }}</option>
                             </select>
                         </label>
                         <label><span>{{ t('common.ui.fullName') }}</span><input type="text" v-model="documentForm.fields.FULL_NAME" required></label>
@@ -955,7 +957,10 @@
                         <label><span>{{ t('portal.profile.labels.barangay') }}</span><input v-model="documentForm.fields.BARANGAY" type="text" placeholder="Irawan"></label>
                         <label><span>{{ t('common.ui.cityMunicipality') }}</span><input v-model="documentForm.fields.CITY" type="text" :placeholder="t('landing.hero.subtitle')"></label>
 
-                        <label><span>{{ t('landing.formLabels.purpose') }}</span><input v-model="documentForm.purpose" type="text" :placeholder="t('common.ui.reasonForRequest')"></label>
+                        <label>
+                            <span>{{ isStatusOnlyDocumentType ? t('common.ui.requestDetails') : t('landing.formLabels.purpose') }}</span>
+                            <input v-model="documentForm.purpose" type="text" :required="isStatusOnlyDocumentType" :placeholder="isStatusOnlyDocumentType ? t('common.ui.describeRequest') : t('common.ui.reasonForRequest')">
+                        </label>
 
                         <button type="submit" class="primary-button" :disabled="isSubmitting">{{ isSubmitting ? 'Submitting...' : (editingDocumentRequestId ? 'Save Changes' : 'Submit Request') }}</button>
                     </form>
@@ -1169,6 +1174,7 @@ const getDocumentDefaultFields = () => ({
 
 const defaultDocumentForm = () => ({ type: 'certificate', fields: getDocumentDefaultFields(), purpose: '' });
 const documentForm = ref(defaultDocumentForm());
+const isStatusOnlyDocumentType = computed(() => ['barangay_id', 'other'].includes(documentForm.value.type));
 const editingDocumentRequestId = ref(null);
 const changePasswordForm = ref({ currentPassword: '', newPassword: '', confirmPassword: '' });
 const deleteAccountForm = ref({ currentPassword: '' });

@@ -1338,7 +1338,7 @@
 
                         <!-- Right Pane: Management & Status -->
                         <div style="display: grid; gap: 12px;">
-                            <div v-if="isDocumentEditable(selectedItem)" style="padding:16px; border:1px solid rgba(13,74,42,0.06); border-radius:8px; background: linear-gradient(180deg,#fbfffc,#f3f8f6); box-shadow: 0 6px 18px rgba(13,74,42,0.03);">
+                            <div v-if="isDocumentEditable(selectedItem) && isGeneratableDocument(selectedItem)" style="padding:16px; border:1px solid rgba(13,74,42,0.06); border-radius:8px; background: linear-gradient(180deg,#fbfffc,#f3f8f6); box-shadow: 0 6px 18px rgba(13,74,42,0.03);">
                                 <h3 style="margin:0 0 12px 0; color: #0f3f33;">{{ t('common.ui.documentManagement') }}</h3>
                                 <div v-if="selectedItem.status === 'revision_requested' && selectedItem.requesterRevisionNote" style="margin-bottom: 12px; padding: 12px; border-radius: 8px; background: #fff7f7; border: 1px solid #f1caca; color: #7a1d1d;">
                                     <strong style="display:block; margin-bottom:4px;">{{ t('common.ui.requesterNote') }}</strong>
@@ -1366,6 +1366,10 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            <div v-if="!isGeneratableDocument(selectedItem)" style="padding:12px; border:1px solid #dce6e1; border-radius:8px; background:#f7fbf9; color:#2d5f45;">
+                                {{ t('common.ui.statusOnlyRequestNotice') }}
                             </div>
 
                             <div v-if="isDocumentRejected(selectedItem)" style="padding:12px; border:1px solid #f1caca; border-radius:8px; background:#fff7f7; color:#7a1d1d;">
@@ -3079,7 +3083,8 @@ const isDocumentEditable = (item) => ['processing', 'revision_requested'].includ
 const isDocumentRejected = (item) => normalizeStatus(item) === 'rejected';
 const isDocumentReady = (item) => normalizeStatus(item) === 'ready_for_pickup';
 const isDocumentCompleted = (item) => normalizeStatus(item) === 'completed';
-const hasGeneratedDocument = (item) => Boolean(item?.generatedAt || item?.generatedFileUrl || item?.generatedFileName);
+const isGeneratableDocument = (item) => ['certificate', 'clearance', 'indigency'].includes(String(item?.type || '').toLowerCase());
+const hasGeneratedDocument = (item) => isGeneratableDocument(item) && Boolean(item?.generatedAt || item?.generatedFileUrl || item?.generatedFileName);
 const mergeDocumentResponse = (current, data = {}) => ({
     ...current,
     ...data,
@@ -3665,6 +3670,10 @@ const rejectDocument = async (item) => {
 
 const generatePreview = async (item) => {
     if (!item?._id) return;
+    if (!isGeneratableDocument(item)) {
+        showToast('Document preview is not available for this request type.', true);
+        return;
+    }
     if (!isDocumentEditable(item)) {
         showToast('Move the document request to processing or revision_requested before generating a preview.', true);
         return;
@@ -3699,6 +3708,10 @@ const generatePreview = async (item) => {
 
 const generateAndSavePdf = async (item) => {
     if (!item?._id) return;
+    if (!isGeneratableDocument(item)) {
+        showToast('PDF generation is not available for this request type.', true);
+        return;
+    }
     if (!isDocumentEditable(item)) {
         showToast('Move the document request to processing or revision_requested before generating a PDF.', true);
         return;
@@ -3775,6 +3788,10 @@ const generateAndSavePdf = async (item) => {
 
 const sendGeneratedDocumentToRequester = async (item) => {
     if (!item?._id || documentEmailLoading.value) return;
+    if (!isGeneratableDocument(item)) {
+        showToast('Soft-copy sending is not available for this request type.', true);
+        return;
+    }
     if (!(item.generatedFileUrl || item.generatedFileName)) {
         showToast('Generate the PDF before sending it to the requester.', true);
         return;
@@ -3923,7 +3940,7 @@ const handleDeleteAnnouncement = async () => {
 
 const getEntityName = (item) => {
     if (activeModal.value === 'document') {
-        return item.documentType?.replaceAll('_', ' ') || 'Document';
+        return item.type?.replaceAll('_', ' ') || item.documentType?.replaceAll('_', ' ') || 'Document';
     } else if (activeModal.value === 'reservation') {
         return `Facility Reservation (${item.facilityName?.replaceAll('_', ' ')})`;
     } else if (activeModal.value === 'report') {

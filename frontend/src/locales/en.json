@@ -411,6 +411,11 @@
       "barangayCertificate": "Barangay Certificate",
       "barangayClearance": "Barangay Clearance",
       "barangayIndigency": "Barangay Indigency",
+      "barangayId": "Barangay ID",
+      "otherRequest": "Others",
+      "requestDetails": "Request Details",
+      "describeRequest": "Describe what you are requesting",
+      "statusOnlyRequestNotice": "This request is handled through status updates only. No PDF generation is available.",
       "barangayHallCoveredCourt": "Barangay Hall, Covered Court"
     }
   },

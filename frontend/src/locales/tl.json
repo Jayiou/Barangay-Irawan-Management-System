@@ -411,6 +411,11 @@
       "barangayCertificate": "Sertipiko ng Barangay",
       "barangayClearance": "Barangay Clearance",
       "barangayIndigency": "Sertipiko ng Indigency",
+      "barangayId": "Barangay ID",
+      "otherRequest": "Iba Pa",
+      "requestDetails": "Detalye ng Request",
+      "describeRequest": "Ilarawan kung ano ang iyong nire-request",
+      "statusOnlyRequestNotice": "Status updates lamang ang request na ito. Walang PDF generation para rito.",
       "barangayHallCoveredCourt": "Barangay Hall, Covered Court"
     }
   },

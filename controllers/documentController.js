@@ -12,6 +12,11 @@ const Official = require('../models/Official');
 
 const TEMPLATE_DIR = path.join(__dirname, '..', 'Certification new');
 const LOGO_DIR = path.join(TEMPLATE_DIR, 'logos');
+const DOCUMENT_REQUEST_TYPES = new Set(['certificate', 'clearance', 'indigency', 'barangay_id', 'other']);
+const GENERATABLE_DOCUMENT_TYPES = new Set(['certificate', 'clearance', 'indigency']);
+
+const canGenerateDocument = (type) => GENERATABLE_DOCUMENT_TYPES.has(String(type || '').toLowerCase());
+const requiresRequestDetails = (type) => ['barangay_id', 'other'].includes(String(type || '').toLowerCase());
 
 const residentPopulateFields = 'firstName lastName middleName suffix birthDate contactNumber email address userId';
 
@@ -401,16 +406,24 @@ exports.createRequest = async (req, res, next) => {
   try {
     const resident = req.user?._id ? await resolveResidentForUser(req.user._id) : await Resident.findById(req.body.residentId);
     const { type, fields, purpose } = req.body;
+    const normalizedType = String(type || '').trim().toLowerCase();
+    const normalizedPurpose = String(purpose || '').trim();
 
     if (!resident) {
       return res.status(400).json({ success: false, message: 'Resident profile required' });
     }
+    if (!DOCUMENT_REQUEST_TYPES.has(normalizedType)) {
+      return res.status(400).json({ success: false, message: 'Invalid request type' });
+    }
+    if (requiresRequestDetails(normalizedType) && !normalizedPurpose) {
+      return res.status(400).json({ success: false, message: 'Request details are required for this request type.' });
+    }
 
     const newReq = await DocumentRequest.create({
       resident: resident._id,
-      type,
+      type: normalizedType,
       fields: normalizeFieldMap(fields),
-      purpose: purpose || ''
+      purpose: normalizedPurpose
     });
 
     return res.json({ success: true, data: newReq });
@@ -455,14 +468,22 @@ exports.updateRequest = async (req, res, next) => {
     }
 
     const { type, fields, purpose } = req.body;
+    const nextType = type ? String(type).trim().toLowerCase() : doc.type;
+    const nextPurpose = purpose !== undefined ? String(purpose || '').trim() : String(doc.purpose || '').trim();
+    if (!DOCUMENT_REQUEST_TYPES.has(nextType)) {
+      return res.status(400).json({ success: false, message: 'Invalid request type' });
+    }
+    if (requiresRequestDetails(nextType) && !nextPurpose) {
+      return res.status(400).json({ success: false, message: 'Request details are required for this request type.' });
+    }
     if (type) {
-      doc.type = type;
+      doc.type = nextType;
     }
     if (fields) {
       doc.fields = normalizeFieldMap(fields);
     }
     if (purpose !== undefined) {
-      doc.purpose = purpose || '';
+      doc.purpose = nextPurpose;
     }
 
     await doc.save();
@@ -607,6 +628,9 @@ exports.adminEdit = async (req, res, next) => {
     const { fields, purpose, status } = req.body;
     const doc = await DocumentRequest.findById(reqId);
     if (!doc) return res.status(404).json({ success: false, message: 'Not found' });
+    if (!canGenerateDocument(doc.type)) {
+      return res.status(400).json({ success: false, message: 'This request is managed through status updates only.' });
+    }
     if (!['processing', 'revision_requested'].includes(doc.status)) {
       return res.status(400).json({ success: false, message: 'Document edits are only available while processing or under revision' });
     }
@@ -678,6 +702,9 @@ exports.generateDocument = async (req, res, next) => {
     });
     if (!docReq) return res.status(404).json({ success: false, message: 'Not found' });
     await attachLegacyResidentFallbacks(docReq);
+    if (!canGenerateDocument(docReq.type)) {
+      return res.status(400).json({ success: false, message: 'PDF generation is not available for this request type.' });
+    }
     if (!['processing', 'revision_requested'].includes(docReq.status)) {
       return res.status(400).json({ success: false, message: 'Document generation is only available while processing or under revision' });
     }
@@ -756,6 +783,10 @@ exports.sendGeneratedDocument = async (req, res, next) => {
 
     if (!docReq) return res.status(404).json({ success: false, message: 'Not found' });
     await attachLegacyResidentFallbacks(docReq);
+
+    if (!canGenerateDocument(docReq.type)) {
+      return res.status(400).json({ success: false, message: 'Soft-copy sending is not available for this request type.' });
+    }
 
     if (!docReq.generatedAt || (!docReq.generatedFileUrl && !docReq.generatedFileName)) {
       return res.status(400).json({ success: false, message: 'Generate the PDF before sending it to the requester.' });
