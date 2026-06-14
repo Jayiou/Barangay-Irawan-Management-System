@@ -29,9 +29,6 @@
                                 <span class="card-badge">{{ getTypeBadge(announcement) }}</span>
                                 <h3>{{ announcement.title }}</h3>
                                 <p>{{ truncateText(announcement.description, 80) }}</p>
-                                <div class="card-meta">
-                                    <span class="card-date"><i class="fa-solid fa-calendar"></i> {{ formatDateShort(announcement.displayDate) }}</span>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -69,9 +66,6 @@
                         <span class="card-badge">{{ getTypeBadge(announcement) }}</span>
                         <h3>{{ announcement.title }}</h3>
                         <p>{{ truncateText(announcement.description, 80) }}</p>
-                        <div class="card-meta">
-                            <span class="card-date"><i class="fa-solid fa-calendar"></i> {{ formatDateShort(announcement.displayDate) }}</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -90,7 +84,6 @@
                 <div class="modal-body">
                     <span class="card-badge" style="margin-bottom: 12px;">{{ getTypeBadge(selectedAnnouncement) }}</span>
                     <h2>{{ selectedAnnouncement.title }}</h2>
-                    <div class="modal-date"><i class="fa-solid fa-calendar"></i> {{ formatDateShort(selectedAnnouncement.displayDate) }}</div>
                     <p class="modal-desc">{{ selectedAnnouncement.description }}</p>
                 </div>
             </div>
@@ -127,7 +120,7 @@ const normalizeAnnouncement = (announcement) => ({
 const normalizeAdvisory = (advisory) => ({
     kind: 'advisory',
     key: `advisory-${advisory._id || advisory.id || advisory.disasterType || Math.random()}`,
-    title: advisory.title || advisory.disasterType?.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()) || 'Disaster Advisory',
+    title: advisory.title || `${advisory.disasterType?.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()) || 'Disaster'} Advisory`,
     description: advisory.advisoryMessage || advisory.description || '',
     imagePath: resolvePublicUploadUrl(advisory.imagePath || advisory.imageUrl || ''),
     displayDate: advisory.expectedImpactDate || advisory.createdAt || '',
@@ -307,12 +300,6 @@ const truncateText = (text, length) => {
 
 const getStatusBadge = (isActive) => {
     return isActive ? 'Active' : 'Inactive';
-};
-
-const formatDateShort = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
 const nextSlide = () => {
@@ -588,21 +575,6 @@ onBeforeUnmount(() => {
     overflow: hidden;
 }
 
-.card-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: auto;
-}
-
-.card-date {
-    font-size: 0.85rem;
-    color: #9b9b9b;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
 /* CAROUSEL NAV BUTTONS REMOVED */
 
 .carousel-dots {
@@ -744,12 +716,6 @@ onBeforeUnmount(() => {
     font-size: 2rem;
     color: #1a1a1a;
     margin: 0 0 10px 0;
-}
-
-.modal-date {
-    color: #9b9b9b;
-    font-size: 0.95rem;
-    margin-bottom: 20px;
 }
 
 .modal-desc {

@@ -19,11 +19,24 @@ const getAnnouncementWebsiteUrl = () => String(
 const buildImportantAnnouncementMessage = (announcement) => {
     const websiteUrl = getAnnouncementWebsiteUrl();
     const detailsText = websiteUrl
-        ? `Visit ${websiteUrl} for more details.`
-        : 'Visit the Barangay Irawan website for more details.';
+        ? `Details: ${websiteUrl}`
+        : 'Visit the Barangay Irawan website for details.';
+    const startDate = announcement?.startDate ? new Date(announcement.startDate) : null;
+    const dateText = startDate && !Number.isNaN(startDate.getTime())
+        ? startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : 'Date TBA';
+    const prefix = 'Brgy Irawan IMPORTANT: ';
+    const suffix = `. Date: ${dateText}. ${detailsText}`;
+    const maxTitleLength = Math.max(1, 160 - prefix.length - suffix.length);
+    const rawTitle = String(announcement?.title || 'Barangay Announcement').trim();
+    const title = rawTitle.length > maxTitleLength
+        ? `${rawTitle.slice(0, Math.max(1, maxTitleLength - 3))}...`
+        : rawTitle;
 
-    return `Brgy Irawan IMPORTANT: ${announcement.title}. ${detailsText}`;
+    return `${prefix}${title}${suffix}`;
 };
+
+exports.buildImportantAnnouncementMessage = buildImportantAnnouncementMessage;
 
 const notifyResidentsOfImportantAnnouncement = async (announcement) => {
     const residents = await Resident.find({ contactNumber: { $nin: ['', null] } })

@@ -698,6 +698,7 @@ const sendDisasterAdvisoryEmail = async (toEmail, name, advisory, details = []) 
     try {
         const disasterType = formatLabel(advisory?.disasterType || 'disaster');
         const severity = formatLabel(advisory?.severity || 'medium');
+        const title = String(advisory?.title || '').trim() || `${disasterType} Advisory`;
         const impactDate = advisory?.expectedImpactDate
             ? new Date(advisory.expectedImpactDate).toLocaleString('en-US', {
                 month: 'long',
@@ -715,16 +716,16 @@ const sendDisasterAdvisoryEmail = async (toEmail, name, advisory, details = []) 
         const mailOptions = {
             from: { name: FROM_NAME, email: FROM_EMAIL },
             to: toEmail,
-            subject: `Barangay Irawan Disaster Advisory: ${disasterType} (${severity})`,
+            subject: `Barangay Irawan Alert: ${title}`,
             replyTo: REPLY_TO,
             headers: defaultMailHeaders,
-            text: `Hello ${name || 'Resident'},\n\nA disaster advisory has been issued for your area.\n\nType: ${disasterType}\nSeverity: ${severity}\nExpected Impact: ${impactDate}\n\n${message}\n\n${detailsText}Please follow barangay safety instructions and prepare as needed.\n\nThank you,\nBarangay Administration`,
+            text: `Hello ${name || 'Resident'},\n\n${title}\n\nType: ${disasterType}\nSeverity: ${severity}\nExpected Impact: ${impactDate}\n\n${message}\n\n${detailsText}Please follow barangay safety instructions and prepare as needed.\n\nThank you,\nBarangay Administration`,
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
                     <h2 style="color: #257f49; text-align: center;">Barangay Irawan</h2>
                     <p>Hello <strong>${escapeHtml(name || 'Resident')}</strong>,</p>
                     <div style="padding: 15px; border-left: 5px solid #d52a2a; background-color: #fff8f6; margin: 20px 0;">
-                        <p style="margin: 0 0 8px 0; font-size: 16px;"><strong>Disaster Advisory for your area</strong></p>
+                        <p style="margin: 0 0 8px 0; font-size: 16px;"><strong>${escapeHtml(title)}</strong></p>
                         <p style="margin: 0 0 6px 0;"><strong>Type:</strong> ${escapeHtml(disasterType)}</p>
                         <p style="margin: 0 0 6px 0;"><strong>Severity:</strong> ${escapeHtml(severity)}</p>
                         <p style="margin: 0 0 12px 0;"><strong>Expected Impact:</strong> ${escapeHtml(impactDate)}</p>

@@ -14,12 +14,11 @@ const formatSmsLabel = (value) => String(value || '')
 
 const buildDisasterAdvisorySmsMessage = (advisory) => {
     const disasterType = formatSmsLabel(advisory?.disasterType) || 'DISASTER';
-    const severity = formatSmsLabel(advisory?.severity);
-    const advisoryLabel = `${severity ? `${severity} ` : ''}${disasterType}`;
+    const title = String(advisory?.title || '').trim() || `${disasterType} ADVISORY`;
     const affectedAreas = advisory?.floodProneAreas?.join(', ') || advisory?.affectedPuroks?.join(', ') || 'See advisory';
     const evacuationCenters = advisory?.evacuationCenters?.join(', ') || 'TBA';
 
-    return `Brgy Irawan ${advisoryLabel} ALERT. Area: ${affectedAreas}. Evac: ${evacuationCenters}.`;
+    return `Brgy Irawan ALERT: ${title}. Area: ${affectedAreas}. Evac: ${evacuationCenters}.`;
 };
 
 const normalizeStringList = (value) => {
@@ -135,6 +134,10 @@ const mapPayload = (body, userId, options) => {
     const source = body || {};
     const payload = {};
 
+    if (!partial || source.title !== undefined) {
+        payload.title = String(source.title || '').trim();
+    }
+
     if (!partial || source.disasterType !== undefined) {
         payload.disasterType = normalizeDisasterType(source.disasterType);
     }
@@ -208,6 +211,9 @@ exports.createDisasterAdvisory = asyncHandler(async (req, res) => {
         payload.imagePath = `/uploads/${req.file.filename}`;
     }
 
+    if (!payload.title) {
+        throw createHttpError(400, 'title is required', { code: 'DISASTER_ADVISORY_VALIDATION' });
+    }
     if (!payload.expectedImpactDate) {
         throw createHttpError(400, 'expectedImpactDate is required', { code: 'DISASTER_ADVISORY_VALIDATION' });
     }

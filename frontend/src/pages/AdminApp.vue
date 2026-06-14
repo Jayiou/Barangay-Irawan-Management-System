@@ -442,6 +442,7 @@
                         <div class="portal-grid" style="grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.3fr);">
                             <article class="content-card" style="padding:16px;">
                                 <form class="stack" @submit.prevent="saveDisasterAdvisory">
+                                    <label><span>{{ t('common.ui.title') }}</span><input v-model="disasterAdvisoryForm.title" type="text" required placeholder="e.g. Flood Warning for Sampalok"></label>
                                     <label><span>{{ t('common.ui.disasterType') }}</span>
                                         <select v-model="disasterAdvisoryForm.disasterType" required>
                                             <option value="typhoon">{{ t('common.ui.typhoon') }}</option>
@@ -516,9 +517,10 @@
                                 <div style="margin-top:10px; display:grid; gap:8px;">
                                     <article v-for="advisory in filteredDisasterIncidents" :key="advisory._id" class="record-item" style="padding:12px;">
                                         <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
-                                            <strong>{{ normalizeLabel(advisory.disasterType) }}</strong>
+                                            <strong>{{ advisory.title || `${normalizeLabel(advisory.disasterType)} Advisory` }}</strong>
                                             <StatusBadge :status="advisory.status" />
                                         </div>
+                                        <div class="fine-print" style="margin-top:4px;">Type: {{ normalizeLabel(advisory.disasterType) }}</div>
                                         <div class="fine-print" style="margin-top:4px;">Impact Date: {{ formatDate(advisory.expectedImpactDate) }}</div>
                                         <div class="fine-print">Severity: {{ normalizeLabel(advisory.severity) }}</div>
                                         <img v-if="advisory.imagePath" :src="resolveProofImageUrl(advisory.imagePath)" alt="Disaster advisory" style="width:100%; max-height:180px; object-fit:cover; border-radius:8px; border:1px solid #dce6e1; margin-top:8px;">
@@ -1934,6 +1936,7 @@ const normalizeFloodProneAreaRows = (entries) => {
 
 const disasterAdvisoryForm = reactive({
     _id: '',
+    title: '',
     disasterType: 'typhoon',
     expectedImpactDate: '',
     severity: 'medium',
@@ -2644,6 +2647,7 @@ const reportAlertMessage = computed(() => {
 
 const resetDisasterAdvisoryForm = () => {
     disasterAdvisoryForm._id = '';
+    disasterAdvisoryForm.title = '';
     disasterAdvisoryForm.disasterType = 'typhoon';
     disasterAdvisoryForm.expectedImpactDate = '';
     disasterAdvisoryForm.severity = 'medium';
@@ -2694,6 +2698,7 @@ const handleDisasterAdvisoryImageChange = (event) => {
 
 const buildDisasterAdvisoryFormData = (payload) => {
     const formData = new FormData();
+    formData.append('title', payload.title);
     formData.append('disasterType', payload.disasterType);
     formData.append('expectedImpactDate', payload.expectedImpactDate);
     formData.append('severity', payload.severity);
@@ -2711,12 +2716,13 @@ const buildDisasterAdvisoryFormData = (payload) => {
 };
 
 const saveDisasterAdvisory = async () => {
-    if (!disasterAdvisoryForm.expectedImpactDate || !disasterAdvisoryForm.advisoryMessage.trim()) {
-        showToast('Expected impact date and advisory message are required.', true);
+    if (!disasterAdvisoryForm.title.trim() || !disasterAdvisoryForm.expectedImpactDate || !disasterAdvisoryForm.advisoryMessage.trim()) {
+        showToast('Title, expected impact date, and advisory message are required.', true);
         return;
     }
 
     const payload = {
+        title: disasterAdvisoryForm.title.trim(),
         disasterType: disasterAdvisoryForm.disasterType,
         expectedImpactDate: disasterAdvisoryForm.expectedImpactDate,
         severity: disasterAdvisoryForm.severity,
@@ -2755,6 +2761,7 @@ const saveDisasterAdvisory = async () => {
 
 const editDisasterAdvisory = (advisory) => {
     disasterAdvisoryForm._id = advisory._id;
+    disasterAdvisoryForm.title = advisory.title || `${normalizeLabel(advisory.disasterType)} Advisory`;
     disasterAdvisoryForm.disasterType = ['typhoon', 'flood', 'landslide'].includes(advisory.disasterType) ? advisory.disasterType : 'typhoon';
     disasterAdvisoryForm.expectedImpactDate = advisory.expectedImpactDate ? new Date(advisory.expectedImpactDate).toISOString().slice(0, 16) : '';
     disasterAdvisoryForm.severity = advisory.severity || 'medium';

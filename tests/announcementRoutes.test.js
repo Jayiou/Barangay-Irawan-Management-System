@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const jwt = require('jsonwebtoken');
 
 const app = require('../app');
+const announcementController = require('../controllers/announcementController');
 const User = require('../models/User');
 const Announcement = require('../models/Announcement');
 const Resident = require('../models/Resident');
@@ -362,4 +363,16 @@ test('important announcement notifies active approved residents by SMS', async (
     } finally {
         await server.close();
     }
+});
+
+test('important announcement SMS includes title and start date without cutting the website URL', () => {
+    const message = announcementController.buildImportantAnnouncementMessage({
+        title: 'Scheduled Water Interruption',
+        startDate: '2026-06-15T08:00:00.000Z'
+    });
+
+    assert.match(message, /Scheduled Water Interruption/);
+    assert.match(message, /Date: Jun 15, 2026/);
+    assert.match(message, /https:\/\/barangay-irawan-management-system\.onrender\.com$/);
+    assert.ok(message.length <= 160);
 });

@@ -99,6 +99,7 @@ test('createDisasterAdvisory stores optional image and notifies residents in sel
         user: { id: 'admin-1' },
         file: { filename: 'image-123.png' },
         body: {
+            title: 'Flood Warning for Sampalok',
             disasterType: 'flood',
             expectedImpactDate: '2026-05-29T10:00',
             severity: 'high',
@@ -140,6 +141,7 @@ test('createDisasterAdvisory does not notify residents outside the selected zone
     const req = {
         user: { id: 'admin-1' },
         body: {
+            title: 'Flood Warning for Sampalok',
             disasterType: 'flood',
             expectedImpactDate: '2026-05-29T10:00',
             severity: 'high',
@@ -157,16 +159,17 @@ test('createDisasterAdvisory does not notify residents outside the selected zone
     assert.deepEqual(sentEmails, []);
 });
 
-test('disaster advisory SMS uses disaster type instead of an undefined title', () => {
+test('disaster advisory SMS uses the formal advisory title', () => {
     const controller = loadController();
     const message = controller.buildDisasterAdvisorySmsMessage({
+        title: 'Flood Warning for Sampalok',
         disasterType: 'flood',
         severity: 'high',
         floodProneAreas: ['1. Sampalok - Zone 2'],
         evacuationCenters: ['Barangay Hall']
     });
 
-    assert.match(message, /Brgy Irawan HIGH FLOOD ALERT/);
+    assert.match(message, /Brgy Irawan ALERT: Flood Warning for Sampalok/);
     assert.match(message, /1\. Sampalok - Zone 2/);
     assert.match(message, /Barangay Hall/);
     assert.doesNotMatch(message, /https?:\/\//);

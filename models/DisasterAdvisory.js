@@ -2,6 +2,11 @@ const mongoose = require('../config/mongoose');
 
 const disasterAdvisorySchema = new mongoose.Schema(
     {
+        title: {
+            type: String,
+            trim: true,
+            default: ''
+        },
         disasterType: {
             type: String,
             enum: ['typhoon', 'flood', 'landslide'],
