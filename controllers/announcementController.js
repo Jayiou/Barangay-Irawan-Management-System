@@ -5,6 +5,64 @@ const { createHttpError } = require('../utils/httpError');
 const { normalizePublicUploadUrl, resolvePublicUploadFilePath } = require('../utils/uploadPaths');
 const { persistPublicUpload } = require('../utils/publicUploadStorage');
 const Announcement = require('../models/Announcement');
+const Resident = require('../models/Resident');
+const { sendSmsNotification } = require('../utils/sms');
+
+const getAnnouncementWebsiteUrl = () => String(
+    process.env.PUBLIC_WEBSITE_URL
+    || process.env.APP_URL
+    || process.env.FRONTEND_URL
+    || process.env.RENDER_EXTERNAL_URL
+    || 'https://barangay-irawan-management-system.onrender.com'
+).trim().replace(/\/$/, '');
+
+const buildImportantAnnouncementMessage = (announcement) => {
+    const websiteUrl = getAnnouncementWebsiteUrl();
+    const detailsText = websiteUrl
+        ? `Visit ${websiteUrl} for more details.`
+        : 'Visit the Barangay Irawan website for more details.';
+
+    return `Brgy Irawan IMPORTANT: ${announcement.title}. ${detailsText}`;
+};
+
+const notifyResidentsOfImportantAnnouncement = async (announcement) => {
+    const residents = await Resident.find({ contactNumber: { $nin: ['', null] } })
+        .populate('userId', 'role isActive accountStatus')
+        .lean();
+    const recipients = new Map();
+
+    for (const resident of residents) {
+        const user = resident.userId;
+        const phoneNumber = String(resident.contactNumber || '').trim();
+        if (
+            phoneNumber
+            && user?.role === 'resident'
+            && user?.isActive !== false
+            && user?.accountStatus === 'approved'
+            && !recipients.has(phoneNumber)
+        ) {
+            recipients.set(phoneNumber, resident);
+        }
+    }
+
+    const recipientEntries = [...recipients.entries()];
+    let sentCount = 0;
+
+    for (let index = 0; index < recipientEntries.length; index += 20) {
+        const batch = recipientEntries.slice(index, index + 20);
+        const results = await Promise.allSettled(batch.map(([phoneNumber, resident]) => sendSmsNotification({
+            phoneNumber,
+            messageType: 'important_announcement',
+            messageContent: buildImportantAnnouncementMessage(announcement),
+            recipientId: resident._id,
+            referenceId: String(announcement._id || '')
+        })));
+
+        sentCount += results.filter((result) => result.status === 'fulfilled' && result.value?.sent).length;
+    }
+
+    return sentCount;
+};
 
 const parseAnnouncementDate = (value, fieldName, required = false) => {
     const normalized = String(value || '').trim();
@@ -111,7 +169,7 @@ exports.getNextDisplayOrder = asyncHandler(async (req, res) => {
 });
 
 exports.createAnnouncement = asyncHandler(async (req, res) => {
-    const { title, description, startDate, endDate, isActive } = req.body;
+    const { title, description, startDate, endDate, isActive, isImportant } = req.body;
 
     if (!String(title || '').trim() || !String(description || '').trim()) {
         throw createHttpError(400, 'Title and description are required');
@@ -128,7 +186,8 @@ exports.createAnnouncement = asyncHandler(async (req, res) => {
         startDate: startDateObj,
         endDate: endDateObj,
         createdBy: req.user.id,
-        isActive: getBooleanValue(isActive, true)
+        isActive: getBooleanValue(isActive, true),
+        isImportant: getBooleanValue(isImportant, false)
     });
 
     if (req.file) {
@@ -137,6 +196,17 @@ exports.createAnnouncement = asyncHandler(async (req, res) => {
     }
 
     await announcement.save();
+
+    if (announcement.isImportant) {
+        try {
+            announcement.smsNotifiedResidentCount = await notifyResidentsOfImportantAnnouncement(announcement);
+            announcement.smsNotificationSentAt = new Date();
+            await announcement.save();
+        } catch (error) {
+            console.error('Failed to notify residents about important announcement:', error);
+        }
+    }
+
     await announcement.populate('createdBy', 'username email');
 
     res.status(201).json({
@@ -147,7 +217,7 @@ exports.createAnnouncement = asyncHandler(async (req, res) => {
 });
 
 const applyAnnouncementUpdates = async (announcement, body, file) => {
-    const { title, description, displayOrder, startDate, endDate, isActive } = body;
+    const { title, description, displayOrder, startDate, endDate, isActive, isImportant } = body;
 
     if (title !== undefined && !String(title || '').trim()) {
         throw createHttpError(400, 'Title is required');
@@ -175,6 +245,7 @@ const applyAnnouncementUpdates = async (announcement, body, file) => {
     if (startDate !== undefined) announcement.startDate = nextStartDate;
     if (endDate !== undefined) announcement.endDate = nextEndDate;
     if (isActive !== undefined) announcement.isActive = getBooleanValue(isActive, true);
+    if (isImportant !== undefined) announcement.isImportant = getBooleanValue(isImportant, false);
     if (file) {
         await persistPublicUpload(file);
         const oldImagePath = announcement.imagePath;

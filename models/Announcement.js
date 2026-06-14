@@ -23,6 +23,19 @@ const announcementSchema = new mongoose.Schema(
             type: Boolean,
             default: true
         },
+        isImportant: {
+            type: Boolean,
+            default: false
+        },
+        smsNotificationSentAt: {
+            type: Date,
+            default: null
+        },
+        smsNotifiedResidentCount: {
+            type: Number,
+            default: 0,
+            min: 0
+        },
         displayOrder: {
             type: Number,
             default: 1

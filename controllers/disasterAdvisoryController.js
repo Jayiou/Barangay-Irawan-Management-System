@@ -7,6 +7,20 @@ const { sendSmsNotification } = require('../utils/sms');
 const { persistPublicUpload } = require('../utils/publicUploadStorage');
 
 const ALLOWED_DISASTER_TYPES = new Set(['typhoon', 'flood', 'landslide']);
+const formatSmsLabel = (value) => String(value || '')
+    .trim()
+    .replaceAll('_', ' ')
+    .toUpperCase();
+
+const buildDisasterAdvisorySmsMessage = (advisory) => {
+    const disasterType = formatSmsLabel(advisory?.disasterType) || 'DISASTER';
+    const severity = formatSmsLabel(advisory?.severity);
+    const advisoryLabel = `${severity ? `${severity} ` : ''}${disasterType}`;
+    const affectedAreas = advisory?.floodProneAreas?.join(', ') || advisory?.affectedPuroks?.join(', ') || 'See advisory';
+    const evacuationCenters = advisory?.evacuationCenters?.join(', ') || 'TBA';
+
+    return `Brgy Irawan ${advisoryLabel} ALERT. Area: ${affectedAreas}. Evac: ${evacuationCenters}.`;
+};
 
 const normalizeStringList = (value) => {
     if (!value) return [];
@@ -88,7 +102,7 @@ const notifyResidentsForAdvisory = async (advisory) => {
         if (resident.contactNumber) notifications.push(sendSmsNotification({
             phoneNumber: resident.contactNumber,
             messageType: 'disaster_advisory',
-            messageContent: `Brgy Irawan ALERT: ${advisory.title}. Affected: ${advisory.floodProneAreas?.join(', ') || 'See advisory'}. Evacuation: ${advisory.evacuationCenters?.join(', ') || 'TBA'}.`,
+            messageContent: buildDisasterAdvisorySmsMessage(advisory),
             recipientId: resident._id,
             referenceId: String(advisory._id || '')
         }));
@@ -113,6 +127,8 @@ const normalizeStatus = (advisory) => {
     const now = new Date();
     return expected <= now ? 'ongoing' : 'upcoming';
 };
+
+exports.buildDisasterAdvisorySmsMessage = buildDisasterAdvisorySmsMessage;
 
 const mapPayload = (body, userId, options) => {
     const { partial = false } = options || {};

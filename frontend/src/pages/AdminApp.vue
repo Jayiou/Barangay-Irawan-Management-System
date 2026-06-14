@@ -679,7 +679,10 @@
                                         <button class="icon-button" @click="openModal('report', item)"><i class="fa-solid fa-eye"></i> {{ t('common.ui.view') }}</button>
                                     </td>
 
-                                    <td v-if="currentView === 'announcements'"><strong>{{ item.title }}</strong></td>
+                                    <td v-if="currentView === 'announcements'">
+                                        <strong>{{ item.title }}</strong><br>
+                                        <small v-if="item.isImportant" style="color: #a76500; font-weight: 700;"><i class="fa-solid fa-triangle-exclamation"></i> Important · {{ item.smsNotifiedResidentCount || 0 }} SMS sent</small>
+                                    </td>
                                     <td v-if="currentView === 'announcements'"><StatusBadge :status="getAnnouncementPublishingStatus(item)" /></td>
                                     <td v-if="currentView === 'announcements'">{{ item.displayOrder }}</td>
                                     <td v-if="currentView === 'announcements'"><small>{{ formatDateTime(item.startDate) }} - {{ item.endDate ? formatDateTime(item.endDate) : 'No end date' }}</small></td>
@@ -1470,6 +1473,17 @@
                                 <option :value="false">{{ t('common.ui.inactive') }}</option>
                             </select>
                         </label>
+                        <label v-if="!editForm._id" style="display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1px solid #f2c36b; border-radius: 8px; background: #fff8e8; cursor: pointer;">
+                            <input v-model="editForm.isImportant" type="checkbox" style="width: auto; margin-top: 3px;">
+                            <span style="display: grid; gap: 3px;">
+                                <strong><i class="fa-solid fa-triangle-exclamation"></i> Important announcement</strong>
+                                <small>Send an SMS with the announcement title to all active residents after creation.</small>
+                            </span>
+                        </label>
+                        <div v-else-if="editForm.isImportant" style="padding: 10px 12px; border-radius: 8px; background: #fff8e8; color: #7a5311; font-size: 0.9rem;">
+                            <i class="fa-solid fa-circle-check"></i>
+                            Important SMS notification sent to {{ editForm.smsNotifiedResidentCount || 0 }} resident(s).
+                        </div>
                         <button type="submit" class="primary-button" :disabled="isSubmitting"><i :class="isSubmitting ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-save'"></i> {{ isSubmitting ? (editForm._id ? 'Updating...' : 'Creating...') : (editForm._id ? 'Update' : 'Create') }} Announcement</button>
                         <button v-if="editForm._id" type="button" class="ghost-button" @click="handleDelete" :disabled="isSubmitting" style="color: #d52a2a;"><i :class="isSubmitting ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-trash'"></i> {{ isSubmitting ? 'Deleting...' : 'Delete' }}</button>
                     </form>
@@ -3494,6 +3508,8 @@ const setupAnnouncementModal = async (item) => {
     editForm.startDate = formatDateTimeLocalInput(item.startDate);
     editForm.endDate = formatDateTimeLocalInput(item.endDate);
     editForm.isActive = item.isActive !== false;
+    editForm.isImportant = item.isImportant === true;
+    editForm.smsNotifiedResidentCount = item.smsNotifiedResidentCount || 0;
     editForm.displayOrder = item.displayOrder || '';
     editForm.imagePath = item.imagePath || item.imageUrl || '';
 };
@@ -3913,6 +3929,7 @@ const handleSaveAnnouncement = async () => {
         announcementForm.startDate = editForm.startDate;
         announcementForm.endDate = editForm.endDate;
         announcementForm.isActive = editForm.isActive;
+        announcementForm.isImportant = editForm.isImportant === true;
         announcementForm.displayOrder = editForm.displayOrder || announcementForm.displayOrder;
         
         await saveAnnouncement(isEdit, editForm._id);

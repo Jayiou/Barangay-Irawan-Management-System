@@ -12,7 +12,8 @@ export function useAnnouncements() {
         displayOrder: 1,
         startDate: '',
         endDate: '',
-        isActive: true
+        isActive: true,
+        isImportant: false
     });
 
     const fetchNextDisplayOrder = async () => {
@@ -35,6 +36,7 @@ export function useAnnouncements() {
         announcementForm.startDate = '';
         announcementForm.endDate = '';
         announcementForm.isActive = true;
+        announcementForm.isImportant = false;
         announcementImageFile.value = null;
     };
 
@@ -74,6 +76,7 @@ export function useAnnouncements() {
         formData.append('startDate', announcementForm.startDate || '');
         formData.append('endDate', announcementForm.endDate || '');
         formData.append('isActive', announcementForm.isActive !== false);
+        formData.append('isImportant', announcementForm.isImportant === true);
 
         if (announcementImageFile.value) {
             formData.append('image', announcementImageFile.value);

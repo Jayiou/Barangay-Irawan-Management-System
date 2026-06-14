@@ -19,7 +19,8 @@ const smsLogSchema = new mongoose.Schema(
                 'manpower_status',
                 'registration_otp',
                 'health_queue',
-                'disaster_advisory'
+                'disaster_advisory',
+                'important_announcement'
             ],
             required: true
         },

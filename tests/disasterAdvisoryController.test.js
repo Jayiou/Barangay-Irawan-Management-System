@@ -156,3 +156,20 @@ test('createDisasterAdvisory does not notify residents outside the selected zone
     assert.equal(res.body.notifiedResidentCount, 0);
     assert.deepEqual(sentEmails, []);
 });
+
+test('disaster advisory SMS uses disaster type instead of an undefined title', () => {
+    const controller = loadController();
+    const message = controller.buildDisasterAdvisorySmsMessage({
+        disasterType: 'flood',
+        severity: 'high',
+        floodProneAreas: ['1. Sampalok - Zone 2'],
+        evacuationCenters: ['Barangay Hall']
+    });
+
+    assert.match(message, /Brgy Irawan HIGH FLOOD ALERT/);
+    assert.match(message, /1\. Sampalok - Zone 2/);
+    assert.match(message, /Barangay Hall/);
+    assert.doesNotMatch(message, /https?:\/\//);
+    assert.doesNotMatch(message, /undefined/i);
+    assert.ok(message.length <= 160);
+});

@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const app = require('../app');
 const User = require('../models/User');
 const Announcement = require('../models/Announcement');
+const Resident = require('../models/Resident');
 
 const originalFindById = User.findById;
 const originalFind = Announcement.find;
@@ -14,6 +15,7 @@ const originalAnnouncementFindByIdAndUpdate = Announcement.findByIdAndUpdate;
 const originalAnnouncementGetNextDisplayOrder = Announcement.getNextDisplayOrder;
 const originalAnnouncementSave = Announcement.prototype.save;
 const originalAnnouncementPopulate = Announcement.prototype.populate;
+const originalResidentFind = Resident.find;
 const originalJwtVerify = jwt.verify;
 
 const startServer = () => {
@@ -55,6 +57,7 @@ test.afterEach(() => {
     Announcement.getNextDisplayOrder = originalAnnouncementGetNextDisplayOrder;
     Announcement.prototype.save = originalAnnouncementSave;
     Announcement.prototype.populate = originalAnnouncementPopulate;
+    Resident.find = originalResidentFind;
     jwt.verify = originalJwtVerify;
 });
 
@@ -300,6 +303,63 @@ test('announcement create route auto-assigns the next display order after 10', a
     } finally {
         Announcement.prototype.save = originalSave;
         Announcement.prototype.populate = originalPopulate;
+        await server.close();
+    }
+});
+
+test('important announcement notifies active approved residents by SMS', async () => {
+    stubUserRole('admin');
+
+    const server = startServer();
+    let saveCount = 0;
+
+    Announcement.getNextDisplayOrder = async () => 12;
+    Announcement.prototype.save = async function save() {
+        saveCount += 1;
+        return this;
+    };
+    Announcement.prototype.populate = async function populate() {
+        return this;
+    };
+    Resident.find = () => ({
+        populate: () => ({
+            lean: async () => [
+                {
+                    _id: 'resident-1',
+                    contactNumber: '09171234567',
+                    userId: { role: 'resident', isActive: true, accountStatus: 'approved' }
+                },
+                {
+                    _id: 'resident-2',
+                    contactNumber: '09181234567',
+                    userId: { role: 'resident', isActive: true, accountStatus: 'pending_approval' }
+                }
+            ]
+        })
+    });
+
+    try {
+        const response = await fetch(`${server.baseUrl}/api/announcements`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${tokenFor('admin-user', 'admin')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: 'Water Interruption',
+                description: 'Details are available on the website.',
+                startDate: '2026-06-15T08:00',
+                isImportant: true
+            })
+        });
+        const body = await response.json();
+
+        assert.equal(response.status, 201);
+        assert.equal(body.data.isImportant, true);
+        assert.equal(body.data.smsNotifiedResidentCount, 1);
+        assert.ok(body.data.smsNotificationSentAt);
+        assert.equal(saveCount, 2);
+    } finally {
         await server.close();
     }
 });
