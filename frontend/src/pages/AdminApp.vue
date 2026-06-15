@@ -7,7 +7,7 @@
     <div v-else-if="!isAuthenticated" style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: #f4f7f6; padding: 20px;">
         <div style="width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center;">
             <ToastPopup :message="toastMessage" :type="toastType" @close="clearToast" />
-            <BrandMark initials="BI" eyebrow="Barangay Admin" :title="t('common.barangayName')" style="margin-bottom: 2rem;" />
+            <BrandMark initials="BI" :eyebrow="lt('Barangay Admin')" :title="t('common.barangayName')" style="margin-bottom: 2rem;" />
             <form class="stack" @submit.prevent="handleAuthSubmit" style="width: 100%; background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.05);">
                 <div class="section-head" style="text-align: center; margin-bottom: 1.5rem;">
                     <h3 style="margin: 0; font-size: 1.5rem; color: #1a1a1a;">{{ authPanelTitle }}</h3>
@@ -118,7 +118,7 @@
                     <button type="button" class="ghost-button" @click="dismissReportAlert" :disabled="reportAlertBusy">{{ t('admin.reportAlert.dismiss') }}</button>
                     <button type="button" class="primary-button" @click="viewReportsFromAlert" :disabled="reportAlertBusy">
                         <i :class="reportAlertBusy ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-flag'"></i>
-                        {{ reportAlertBusy ? 'Loading reports...' : 'View Reports' }}
+                        {{ reportAlertBusy ? t('admin.reportAlert.loadingReports') : t('admin.reportAlert.viewReports') }}
                     </button>
                 </div>
             </div>
@@ -129,7 +129,7 @@
             
             <!-- Sidebar Header -->
             <div class="sidebar-header">
-                <BrandMark initials="BI" :eyebrow="isBhwUser ? 'Health Worker Portal' : 'Admin Portal'" :title="t('common.barangayName')" />
+                <BrandMark initials="BI" :eyebrow="lt(isBhwUser ? 'Health Worker Portal' : 'Admin Portal')" :title="t('common.barangayName')" />
             </div>
 
             <!-- Sidebar Navigation -->
@@ -442,7 +442,7 @@
                         <div class="portal-grid" style="grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.3fr);">
                             <article class="content-card" style="padding:16px;">
                                 <form class="stack" @submit.prevent="saveDisasterAdvisory">
-                                    <label><span>{{ t('common.ui.title') }}</span><input v-model="disasterAdvisoryForm.title" type="text" required placeholder="e.g. Flood Warning for Sampalok"></label>
+                                    <label><span>{{ t('common.ui.title') }}</span><input v-model="disasterAdvisoryForm.title" type="text" required :placeholder="t('admin.placeholders.advisoryTitle')"></label>
                                     <label><span>{{ t('common.ui.disasterType') }}</span>
                                         <select v-model="disasterAdvisoryForm.disasterType" required>
                                             <option value="typhoon">{{ t('common.ui.typhoon') }}</option>
@@ -491,7 +491,7 @@
                                     <small class="fine-print">{{ UPLOAD_SIZE_NOTE }}</small>
                                     <div v-if="disasterAdvisoryImagePreview" style="display:grid; gap:6px; margin-top:-8px;">
                                         <img :src="disasterAdvisoryImagePreview" alt="Disaster advisory preview" style="width:100%; max-height:180px; object-fit:cover; border-radius:8px; border:1px solid #dce6e1;">
-                                        <small class="fine-print">{{ disasterAdvisoryImageFile ? disasterAdvisoryImageFile.name : 'Current advisory picture' }}</small>
+                                                <small class="fine-print">{{ disasterAdvisoryImageFile ? disasterAdvisoryImageFile.name : lt('Current advisory picture') }}</small>
                                     </div>
                                     <label><span>{{ t('common.status') }}</span>
                                         <select v-model="disasterAdvisoryForm.status">
@@ -501,7 +501,7 @@
                                         </select>
                                     </label>
                                     <button class="primary-button" type="submit" :disabled="isSubmitting">
-                                        <i class="fa-solid fa-floppy-disk"></i> {{ disasterAdvisoryForm._id ? 'Update Advisory' : 'Create Advisory' }}
+                                        <i class="fa-solid fa-floppy-disk"></i> {{ disasterAdvisoryForm._id ? t('admin.actions.updateAdvisory') : t('admin.actions.createAdvisory') }}
                                     </button>
                                 </form>
                             </article>
@@ -687,7 +687,7 @@
                                     </td>
                                     <td v-if="currentView === 'announcements'"><StatusBadge :status="getAnnouncementPublishingStatus(item)" /></td>
                                     <td v-if="currentView === 'announcements'">{{ item.displayOrder }}</td>
-                                    <td v-if="currentView === 'announcements'"><small>{{ formatDateTime(item.startDate) }} - {{ item.endDate ? formatDateTime(item.endDate) : 'No end date' }}</small></td>
+                                    <td v-if="currentView === 'announcements'"><small>{{ formatDateTime(item.startDate) }} - {{ item.endDate ? formatDateTime(item.endDate) : lt('No end date') }}</small></td>
                                     <td v-if="currentView === 'announcements'">
                                         <button class="icon-button" @click="openModal('announcement', item)"><i class="fa-solid fa-pen-to-square"></i> {{ t('common.ui.edit') }}</button>
                                     </td>
@@ -750,7 +750,7 @@
                                             <input v-model="profileForm.currentPassword" :type="adminProfilePasswordVisibility.emailCurrent ? 'text' : 'password'" autocomplete="current-password" :placeholder="t('common.ui.enterCurrentPassword')">
                                             <button
                                                 type="button"
-                                                :aria-label="adminProfilePasswordVisibility.emailCurrent ? 'Hide current password' : 'Show current password'"
+                                                :aria-label="adminProfilePasswordVisibility.emailCurrent ? t('common.passwordHide') : t('common.passwordShow')"
                                                 @click="toggleAdminProfilePasswordVisibility('emailCurrent')"
                                             >
                                                 <i :class="adminProfilePasswordVisibility.emailCurrent ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
@@ -759,7 +759,7 @@
                                     </label>
                                     <button type="button" class="primary-button" :disabled="profileLoading" @click="requestAdminEmailChange" style="justify-content: center; width: 100%; padding: 0.85rem; font-size: 1rem; border-radius: 6px;">
                                         <i :class="profileLoading ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-paper-plane'"></i>
-                                        {{ profileLoading ? 'Sending verification...' : 'Send Verification Link' }}
+                                        {{ profileLoading ? t('admin.actions.sendingVerification') : t('admin.actions.sendVerification') }}
                                     </button>
                                     <p class="fine-print" style="margin: 0;">{{ t('admin.profile.helper') }}</p>
                                 </div>
@@ -778,7 +778,7 @@
                                             <input v-model="changePasswordForm.currentPassword" :type="adminProfilePasswordVisibility.current ? 'text' : 'password'" autocomplete="current-password" required>
                                             <button
                                                 type="button"
-                                                :aria-label="adminProfilePasswordVisibility.current ? 'Hide current password' : 'Show current password'"
+                                                :aria-label="adminProfilePasswordVisibility.current ? t('common.passwordHide') : t('common.passwordShow')"
                                                 @click="toggleAdminProfilePasswordVisibility('current')"
                                             >
                                                 <i :class="adminProfilePasswordVisibility.current ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
@@ -791,7 +791,7 @@
                                             <input v-model="changePasswordForm.newPassword" :type="adminProfilePasswordVisibility.new ? 'text' : 'password'" autocomplete="new-password" minlength="8" required>
                                             <button
                                                 type="button"
-                                                :aria-label="adminProfilePasswordVisibility.new ? 'Hide new password' : 'Show new password'"
+                                                :aria-label="adminProfilePasswordVisibility.new ? t('common.passwordHide') : t('common.passwordShow')"
                                                 @click="toggleAdminProfilePasswordVisibility('new')"
                                             >
                                                 <i :class="adminProfilePasswordVisibility.new ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
@@ -804,7 +804,7 @@
                                             <input v-model="changePasswordForm.confirmPassword" :type="adminProfilePasswordVisibility.confirm ? 'text' : 'password'" autocomplete="new-password" minlength="8" required>
                                             <button
                                                 type="button"
-                                                :aria-label="adminProfilePasswordVisibility.confirm ? 'Hide confirm password' : 'Show confirm password'"
+                                                :aria-label="adminProfilePasswordVisibility.confirm ? t('common.passwordHide') : t('common.passwordShow')"
                                                 @click="toggleAdminProfilePasswordVisibility('confirm')"
                                             >
                                                 <i :class="adminProfilePasswordVisibility.confirm ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
@@ -822,7 +822,7 @@
                                     </div>
                                     <button type="submit" class="primary-button" :disabled="changePasswordLoading" style="justify-content: center; width: 100%; padding: 0.85rem; font-size: 1rem; border-radius: 6px;">
                                         <i :class="changePasswordLoading ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-key'"></i>
-                                        {{ changePasswordLoading ? 'Updating Password...' : 'Update Password' }}
+                                        {{ changePasswordLoading ? t('portal.profile.buttons.updatingPassword') : t('portal.profile.buttons.updatePassword') }}
                                     </button>
                                 </form>
                             </article>
@@ -860,7 +860,7 @@
                             </div>
                         </div>
                         <div class="table-toolbar appointment-toolbar">
-                            <input v-model="appointmentSearch" type="search" placeholder="Search appointments...">
+                            <input v-model="appointmentSearch" type="search" :placeholder="t('admin.placeholders.searchAppointments')">
                             <select v-model="appointmentStatusFilter">
                                 <option value="all">{{ t('portal.appointments.statusAll') }}</option>
                                 <option value="pending">{{ t('portal.appointments.statusPending') }}</option>
@@ -960,7 +960,7 @@
                                     <small class="fine-print">{{ t('common.ui.passwordOptional') }}</small>
                                     <input v-model="bhwForm.password" type="password" :placeholder="t('common.ui.autoGenerateHint')" />
                                 </label>
-                                <button type="submit" class="primary-button" :disabled="bhwLoading">{{ bhwLoading ? 'Creating...' : 'Create BHW' }}</button>
+                                <button type="submit" class="primary-button" :disabled="bhwLoading">{{ bhwLoading ? t('admin.actions.creating') : t('common.ui.createBhwAccount') }}</button>
                             </form>
                         </div>
                         <div class="table-responsive">
@@ -1210,13 +1210,13 @@
 
                 <div v-if="['reservation', 'manpower', 'report', 'appointment'].includes(activeModal)">
                     <h2><i class="fa-solid fa-eye"></i>
-                        {{ activeModal === 'report' ? 'View Report' : activeModal === 'manpower' ? 'View Manpower Request' : activeModal === 'reservation' ? 'View Reservation' : 'View Appointment' }}
+                        {{ t(`admin.modalTitles.${activeModal || 'appointment'}`) }}
                     </h2>
-                    <p class="fine-print">{{ activeModal === 'report' ? 'Review complete report details, then apply a status action.' : activeModal === 'manpower' ? 'Review manpower request details and update its status.' : activeModal === 'reservation' ? 'Review reservation details and manage the booking.' : 'Review appointment details and manage scheduling.' }}</p>
+                    <p class="fine-print">{{ t(`admin.modalHelp.${activeModal || 'appointment'}`) }}</p>
 
                     <div v-if="['reservation', 'manpower', 'appointment'].includes(activeModal)" class="stack" style="background: linear-gradient(180deg,#fbfffc,#f7fbf8); padding: 15px; border-radius: 6px; border-left: 3px solid var(--accent); margin: 15px 0 0 0; box-shadow: 0 6px 18px rgba(13,74,42,0.03);">
                         <p v-for="detail in getRequestDetails(selectedItem)" :key="detail.label" v-show="detail.value">
-                            <strong>{{ detail.label }}:</strong> {{ detail.value }}
+                            <strong>{{ lt(detail.label) }}:</strong> {{ lt(detail.value) }}
                         </p>
                     </div>
 
@@ -1224,7 +1224,7 @@
                         <div class="report-modal-left">
                             <div class="stack report-details-card">
                                 <p v-for="detail in getRequestDetails(selectedItem)" :key="detail.label" v-show="detail.value">
-                                    <strong>{{ detail.label }}:</strong> {{ detail.value }}
+                                    <strong>{{ lt(detail.label) }}:</strong> {{ lt(detail.value) }}
                                 </p>
                             </div>
                         </div>
@@ -1307,7 +1307,7 @@
                         <div style="display: grid; gap: 12px;">
                             <div class="stack" style="background: linear-gradient(180deg,#fbfffc,#f7fbf8); padding: 15px; border-radius: 6px; border-left: 3px solid var(--accent); margin: 0; box-shadow: 0 6px 18px rgba(13,74,42,0.03);">
                                 <p v-for="detail in getRequestDetails(selectedItem)" :key="detail.label" v-show="detail.value">
-                                    <strong>{{ detail.label }}:</strong> {{ detail.value }}
+                                    <strong>{{ lt(detail.label) }}:</strong> {{ lt(detail.value) }}
                                 </p>
                             </div>
 
@@ -1362,11 +1362,11 @@
 
                                     <div style="display:flex; gap:8px; flex-direction: column;">
                                         <button type="button" class="primary-button" @click="saveDocumentEdits" :disabled="isSubmitting" style="width: 100%;">
-                                            <i class="fa-solid fa-save"></i> {{ isSubmitting ? 'Saving...' : 'Save Edits' }}
+                                            <i class="fa-solid fa-save"></i> {{ isSubmitting ? t('admin.actions.saving') : t('admin.actions.saveEdits') }}
                                         </button>
                                         <div style="display: grid; gap: 8px;">
                                             <button type="button" class="primary-button" @click="generateAndSavePdf(selectedItem)" :disabled="previewLoading || isSubmitting" style="width: 100%; background: #2c3e50;">
-                                                <i class="fa-solid fa-file-pdf"></i> {{ previewLoading ? 'Generating...' : 'Generate PDF' }}
+                                                <i class="fa-solid fa-file-pdf"></i> {{ previewLoading ? t('admin.actions.generating') : t('admin.actions.generatePdf') }}
                                             </button>
                                         </div>
                                     </div>
@@ -1385,7 +1385,7 @@
                                 {{ t('common.ui.pdfGenerated') }}
                                 <button type="button" class="primary-button" @click="sendGeneratedDocumentToRequester(selectedItem)" :disabled="documentEmailLoading" style="width: 100%; margin-top: 10px;">
                                     <i :class="documentEmailLoading ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-envelope'"></i>
-                                    {{ documentEmailLoading ? 'Sending...' : 'Send to Requester' }}
+                                    {{ documentEmailLoading ? t('admin.actions.sending') : t('admin.actions.sendToRequester') }}
                                 </button>
                                 <p class="fine-print" style="margin: 8px 0 0;">{{ t('common.ui.softCopyNotice') }}</p>
                             </div>
@@ -1444,7 +1444,7 @@
                                 <option value="inactive">{{ t('common.ui.inactive') }}</option>
                             </select>
                         </label>
-                        <button type="submit" class="primary-button" :disabled="isSubmitting"><i :class="isSubmitting ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-save'"></i> {{ isSubmitting ? 'Saving...' : 'Save Official' }}</button>
+                        <button type="submit" class="primary-button" :disabled="isSubmitting"><i :class="isSubmitting ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-save'"></i> {{ isSubmitting ? t('admin.actions.saving') : t('admin.actions.saveOfficial') }}</button>
                     </form>
                 </div>
 
@@ -1478,16 +1478,16 @@
                         <label v-if="!editForm._id" style="display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1px solid #f2c36b; border-radius: 8px; background: #fff8e8; cursor: pointer;">
                             <input v-model="editForm.isImportant" type="checkbox" style="width: auto; margin-top: 3px;">
                             <span style="display: grid; gap: 3px;">
-                                <strong><i class="fa-solid fa-triangle-exclamation"></i> Important announcement</strong>
-                                <small>Send an SMS with the announcement title to all active residents after creation.</small>
+                                <strong><i class="fa-solid fa-triangle-exclamation"></i> {{ t('admin.actions.importantAnnouncement') }}</strong>
+                                <small>{{ t('admin.actions.importantAnnouncementHelp') }}</small>
                             </span>
                         </label>
                         <div v-else-if="editForm.isImportant" style="padding: 10px 12px; border-radius: 8px; background: #fff8e8; color: #7a5311; font-size: 0.9rem;">
                             <i class="fa-solid fa-circle-check"></i>
                             Important SMS notification sent to {{ editForm.smsNotifiedResidentCount || 0 }} resident(s).
                         </div>
-                        <button type="submit" class="primary-button" :disabled="isSubmitting"><i :class="isSubmitting ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-save'"></i> {{ isSubmitting ? (editForm._id ? 'Updating...' : 'Creating...') : (editForm._id ? 'Update' : 'Create') }} Announcement</button>
-                        <button v-if="editForm._id" type="button" class="ghost-button" @click="handleDelete" :disabled="isSubmitting" style="color: #d52a2a;"><i :class="isSubmitting ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-trash'"></i> {{ isSubmitting ? 'Deleting...' : 'Delete' }}</button>
+                        <button type="submit" class="primary-button" :disabled="isSubmitting"><i :class="isSubmitting ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-save'"></i> {{ isSubmitting ? (editForm._id ? t('admin.actions.updating') : t('admin.actions.creating')) : (editForm._id ? t('admin.actions.updateAnnouncement') : t('admin.actions.createAnnouncement')) }}</button>
+                        <button v-if="editForm._id" type="button" class="ghost-button" @click="handleDelete" :disabled="isSubmitting" style="color: #d52a2a;"><i :class="isSubmitting ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-trash'"></i> {{ isSubmitting ? t('admin.actions.deleting') : t('common.ui.delete') }}</button>
                     </form>
                 </div>
             </div>
@@ -1579,6 +1579,7 @@ import { useResidents } from '@/composables/useResidents';
 import { useReportNotifications } from '@/composables/useReportNotifications';
 import HealthEventsManager from '@/components/HealthEventsManager.vue';
 import ActiveQueueDashboard from '@/components/ActiveQueueDashboard.vue';
+import { localizeAdminStructure, localizeAdminText } from '@/shared/adminLocalization';
 
 // Composables
 const {
@@ -1617,7 +1618,8 @@ const {
     initSession
 } = useAdminAuth();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const lt = (value, isError = false) => localizeAdminText(value, locale.value, isError);
 
 const ADMIN_VIEW_STORAGE_KEY = 'barangayAdminCurrentView';
 const ADMIN_VIEWS = new Set(['dashboard', 'announcements', 'residents', 'appointments', 'officials', 'reservations', 'manpower', 'reports', 'documents', 'disaster', 'sms-logs', 'profile', 'health-events', 'health-queue']);
@@ -1626,7 +1628,7 @@ const BHW_VIEWS = new Set(['health-queue', 'profile']);
 // Per-page static text has been migrated to global i18n locale files.
 
 const confirmLogout = () => {
-    if (confirm("Are you sure you want to log out?")) {
+    if (confirm(t('admin.actions.logoutConfirm'))) {
         logout();
     }
 };
@@ -1634,7 +1636,7 @@ const confirmLogout = () => {
 const authPanelTitle = computed(() => {
     if (authView.value === 'login') return t('admin.login.heading');
     if (authView.value === 'forgot') return t('admin.forgot.heading');
-    if (authView.value === 'email-confirm') return 'Confirm Admin Email';
+    if (authView.value === 'email-confirm') return lt('Confirm Admin Email');
     return t('admin.reset.heading');
 });
 
@@ -1969,7 +1971,7 @@ const showToast = (message, isError = false) => {
         return;
     }
 
-    toastMessage.value = message;
+    toastMessage.value = lt(message, isError);
     toastType.value = isError ? 'error' : 'success';
     toastTimer = setTimeout(() => {
         clearToast();
@@ -2012,7 +2014,7 @@ const pendingCounts = computed(() => ({
     accs: residents.value.filter(r => r.userId?.accountStatus === 'pending_approval').length
 }));
 
-const viewTitle = computed(() => ({
+const viewTitle = computed(() => lt(({
     dashboard: 'Portal Overview',
     announcements: 'Announcements',
     residents: 'Resident Accounts',
@@ -2025,7 +2027,7 @@ const viewTitle = computed(() => ({
     'sms-logs': 'SMS Logs'
     ,
     'documents': 'Document Requests'
-}[currentView.value]));
+}[currentView.value])));
 
 const pendingWorkload = computed(() => pendingCounts.value.reserves + pendingCounts.value.reports + pendingCounts.value.appointments);
 const totalResidentsCount = computed(() => residents.value.length);
@@ -2033,14 +2035,14 @@ const approvedResidentsCount = computed(() => residents.value.filter((resident) 
 const activeAnnouncementsCount = computed(() => announcements.value.filter((announcement) => getAnnouncementPublishingStatus(announcement) === 'live').length);
 const activeOfficialsCount = computed(() => officials.value.filter((official) => official.status !== 'inactive').length);
 
-const analyticsRanges = [
+const analyticsRanges = computed(() => localizeAdminStructure([
     { key: 'daily', label: 'Daily' },
     { key: 'weekly', label: 'Weekly' },
     { key: 'monthly', label: 'Monthly' },
     { key: 'yearly', label: 'Yearly' }
-];
+], locale.value));
 
-const dashboardCards = computed(() => ([
+const dashboardCards = computed(() => localizeAdminStructure([
     {
         key: 'residents',
         label: 'Total Residents',
@@ -2089,7 +2091,7 @@ const dashboardCards = computed(() => ([
         icon: 'fa-solid fa-tower-broadcast',
         tone: 'gold'
     }
-]));
+], locale.value));
 
 const oneWeekAgo = () => {
     const date = new Date();
@@ -2145,10 +2147,10 @@ const disasterSummary = computed(() => {
 });
 
 const normalizeLabel = (value) => {
-    if (!value) return 'Unspecified';
-    return String(value)
+    if (!value) return lt('Unspecified');
+    return lt(String(value)
         .replaceAll('_', ' ')
-        .replace(/\b\w/g, (letter) => letter.toUpperCase());
+        .replace(/\b\w/g, (letter) => letter.toUpperCase()));
 };
 
 const INVENTORY_FACILITY_NAMES = new Set(['chair', 'tent']);
@@ -2379,13 +2381,13 @@ const activeAnalyticsData = computed(() => {
     const distribution = active.distribution;
     const total = active.records.length;
 
-    return {
+    return localizeAdminStructure({
         ...active,
         distribution,
         total,
         ringStyle: buildRingStyle(distribution),
         trend: buildTrend(active.records, active.dateKey)
-    };
+    }, locale.value);
 });
 
 const analyticsLineDots = computed(() => {
@@ -2463,7 +2465,7 @@ const getPeakWeekday = (records, dateKey) => {
     return Object.entries(counts).sort((left, right) => right[1] - left[1])[0]?.[0] || 'None';
 };
 
-const dashboardMetrics = computed(() => ([
+const dashboardMetrics = computed(() => localizeAdminStructure([
     {
         label: 'Pending workload',
         value: pendingWorkload.value,
@@ -2485,7 +2487,7 @@ const dashboardMetrics = computed(() => ([
         icon: 'fa-solid fa-bullhorn',
         tone: 'gold'
     }
-]));
+], locale.value));
 
 const workloadBars = computed(() => {
     const rows = [
@@ -2495,11 +2497,11 @@ const workloadBars = computed(() => {
     ];
     const max = Math.max(...rows.map((row) => row.value), 1);
 
-    return rows.map((row) => ({
+    return localizeAdminStructure(rows.map((row) => ({
         ...row,
         width: `${Math.max(8, Math.round((row.value / max) * 100))}%`,
         percentLabel: pendingWorkload.value ? `${Math.round((row.value / pendingWorkload.value) * 100)}% of pending work` : 'No queue'
-    }));
+    })), locale.value);
 });
 
 const workloadRingStyle = computed(() => {
@@ -2619,14 +2621,14 @@ const getWorkloadColor = (tone) => {
 
 const reportAlertHeading = computed(() => {
     if (reportAlertReports.value.length <= 1) {
-        return 'A new report just arrived.';
+        return t('admin.reportAlert.singleHeading');
     }
-    return `${reportAlertReports.value.length} new reports just arrived.`;
+    return t('admin.reportAlert.multipleHeading', { count: reportAlertReports.value.length });
 });
 
 const reportAlertMessage = computed(() => {
     if (reportAlertReports.value.length === 0) {
-        return 'Please review the reports list for details.';
+        return t('admin.reportAlert.reviewList');
     }
 
     const names = reportAlertReports.value
@@ -2636,13 +2638,13 @@ const reportAlertMessage = computed(() => {
         .join(', ');
 
     if (reportAlertReports.value.length === 1) {
-        return names ? `Report received: ${names}` : 'A new report is waiting for review.';
+        return names ? t('admin.reportAlert.reportReceived', { names }) : t('admin.reportAlert.waitingReview');
     }
 
     const suffix = reportAlertReports.value.length > 2 ? '...' : '';
     return names
-        ? `Latest reports: ${names}${suffix}`
-        : 'Multiple reports are waiting for review.';
+        ? t('admin.reportAlert.latestReports', { names: `${names}${suffix}` })
+        : t('admin.reportAlert.multipleWaiting');
 });
 
 const resetDisasterAdvisoryForm = () => {
@@ -2780,7 +2782,7 @@ const editDisasterAdvisory = (advisory) => {
 
 const deleteDisasterAdvisory = async (advisoryId) => {
     if (!advisoryId) return;
-    if (!(await showConfirm('Delete this disaster advisory?'))) return;
+    if (!(await showConfirm(t('admin.confirm.deleteDisasterAdvisory')))) return;
 
     try {
         await apiFetch(`/disaster-advisories/${advisoryId}`, { method: 'DELETE' });
@@ -2798,7 +2800,7 @@ const deletingResidentId = ref('');
 
 const deleteResident = async (residentId) => {
     if (!residentId) return;
-    if (!(await showConfirm('Delete this resident account permanently? This will also remove their linked user account.'))) return;
+    if (!(await showConfirm(t('admin.confirm.deleteResidentPermanently')))) return;
 
     deletingResidentId.value = residentId;
     try {
@@ -2956,7 +2958,7 @@ const filteredSMSLogs = computed(() => smsLogs.value.filter((log) => matchesSear
 const managementFilterConfig = computed(() => {
     switch (currentView.value) {
         case 'announcements':
-            return {
+            return localizeAdminStructure({
                 searchPlaceholder: 'Search announcements...',
                 dateLabel: 'Start date',
                 statusOptions: [
@@ -2966,9 +2968,9 @@ const managementFilterConfig = computed(() => {
                     { value: 'expired', label: 'Expired' },
                     { value: 'inactive', label: 'Inactive' }
                 ]
-            };
+            }, locale.value);
         case 'residents':
-            return {
+            return localizeAdminStructure({
                 searchPlaceholder: 'Search residents...',
                 dateLabel: 'Registered date',
                 statusOptions: [
@@ -2979,9 +2981,9 @@ const managementFilterConfig = computed(() => {
                     { value: 'suspended', label: 'Suspended' },
                     { value: 'archived', label: 'Archived' }
                 ]
-            };
+            }, locale.value);
         case 'reservations':
-            return {
+            return localizeAdminStructure({
                 searchPlaceholder: 'Search reservations...',
                 dateLabel: 'Reservation date',
                 statusOptions: [
@@ -2993,9 +2995,9 @@ const managementFilterConfig = computed(() => {
                     { value: 'completed', label: 'Completed' },
                     { value: 'cancelled', label: 'Cancelled' }
                 ]
-            };
+            }, locale.value);
         case 'reports':
-            return {
+            return localizeAdminStructure({
                 searchPlaceholder: 'Search reports...',
                 dateLabel: 'Report date',
                 statusOptions: [
@@ -3007,9 +3009,9 @@ const managementFilterConfig = computed(() => {
                     { value: 'rejected', label: 'Rejected' },
                     { value: 'closed', label: 'Closed' }
                 ]
-            };
+            }, locale.value);
         case 'manpower':
-            return {
+            return localizeAdminStructure({
                 searchPlaceholder: 'Search manpower requests...',
                 dateLabel: 'Request date',
                 statusOptions: [
@@ -3022,9 +3024,9 @@ const managementFilterConfig = computed(() => {
                     { value: 'rejected', label: 'Rejected' },
                     { value: 'cancelled', label: 'Cancelled' }
                 ]
-            };
+            }, locale.value);
         case 'documents':
-            return {
+            return localizeAdminStructure({
                 searchPlaceholder: 'Search document requests...',
                 dateLabel: 'Date submitted',
                 statusOptions: [
@@ -3036,13 +3038,13 @@ const managementFilterConfig = computed(() => {
                     { value: 'completed', label: 'Completed' },
                     { value: 'rejected', label: 'Rejected' }
                 ]
-            };
+            }, locale.value);
         default:
-            return {
+            return localizeAdminStructure({
                 searchPlaceholder: 'Search records...',
                 dateLabel: 'Date',
                 statusOptions: [{ value: 'all', label: 'All statuses' }]
-            };
+            }, locale.value);
     }
 });
 
@@ -3250,9 +3252,9 @@ const openLocationPreview = (item) => {
     if (!src) return;
 
     recordPreview.type = 'map';
-    recordPreview.title = 'Pinned Location Preview';
+    recordPreview.title = lt('Pinned Location Preview');
     recordPreview.src = src;
-    recordPreview.alt = 'Pinned location map';
+    recordPreview.alt = lt('Pinned location map');
     recordPreview.open = true;
 };
 
@@ -3616,7 +3618,7 @@ const handleSave = async () => {
 
 const deleteSelectedResidentAccount = async () => {
     if (!selectedItem.value?._id || isSubmitting.value) return;
-    if (!confirm('Delete this resident account and linked login permanently? This cannot be undone.')) return;
+    if (!confirm(t('admin.confirm.deleteResidentAccount'))) return;
 
     isSubmitting.value = true;
     try {
@@ -3665,7 +3667,7 @@ const saveDocumentEdits = async () => {
 
 const approveDocument = async (item) => {
     if (!item?._id) return;
-    if (!(await showConfirm('Approve this document request?'))) return;
+    if (!(await showConfirm(t('admin.confirm.approveDocument')))) return;
     try {
         isSubmitting.value = true;
         const response = await apiFetch(`/admin/documents/${item._id}/approve`, { method: 'PUT' });
@@ -3834,7 +3836,7 @@ const sendGeneratedDocumentToRequester = async (item) => {
 };
 
 const handleDelete = async () => {
-    if (!confirm(`Delete this ${activeModal.value}?`)) return;
+    if (!confirm(t('admin.confirm.deleteItem', { item: lt(normalizeLabel(activeModal.value)) }))) return;
     if (isSubmitting.value) return;
     isSubmitting.value = true;
     try {
@@ -3951,7 +3953,7 @@ const handleSaveAnnouncement = async () => {
 };
 
 const handleDeleteAnnouncement = async () => {
-    if (!(await showConfirm('Delete this announcement?'))) return;
+    if (!(await showConfirm(t('admin.confirm.deleteAnnouncement')))) return;
     try {
         await deleteAnnouncement(editForm._id);
         msg('Announcement deleted successfully.');
@@ -4087,7 +4089,7 @@ const getDeleteEndpointForActiveModal = () => {
 
 const handleDeleteTerminalRecord = async () => {
     if (!selectedItem.value?._id || isSubmitting.value) return;
-    if (!(await showConfirm(`Delete this ${activeModal.value} record?`))) return;
+    if (!(await showConfirm(t('admin.confirm.deleteRecord', { item: lt(normalizeLabel(activeModal.value)) })))) return;
 
     isSubmitting.value = true;
     try {

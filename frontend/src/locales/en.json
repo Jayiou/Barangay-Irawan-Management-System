@@ -851,6 +851,52 @@
   "admin": {
     "initializing": "Initializing admin session...",
     "healthCenter": "Health Center",
+    "actions": {
+      "logoutConfirm": "Are you sure you want to log out?",
+      "sendingVerification": "Sending verification...",
+      "sendVerification": "Send Verification Link",
+      "creating": "Creating...",
+      "saving": "Saving...",
+      "saveEdits": "Save Edits",
+      "generating": "Generating...",
+      "generatePdf": "Generate PDF",
+      "sending": "Sending...",
+      "sendToRequester": "Send to Requester",
+      "saveOfficial": "Save Official",
+      "updating": "Updating...",
+      "deleting": "Deleting...",
+      "updateAdvisory": "Update Advisory",
+      "createAdvisory": "Create Advisory",
+      "updateAnnouncement": "Update Announcement",
+      "createAnnouncement": "Create Announcement",
+      "importantAnnouncement": "Important announcement",
+      "importantAnnouncementHelp": "Send an SMS with the announcement title to all active residents after creation."
+    },
+    "confirm": {
+      "deleteResidentAccount": "Delete this resident account and linked login permanently? This cannot be undone.",
+      "deleteAnnouncement": "Delete this announcement?",
+      "deleteItem": "Delete this {item}?",
+      "deleteRecord": "Delete this {item} record?",
+      "deleteDisasterAdvisory": "Delete this disaster advisory?",
+      "deleteResidentPermanently": "Delete this resident account permanently? This will also remove the linked user account.",
+      "approveDocument": "Approve this document request?"
+    },
+    "placeholders": {
+      "advisoryTitle": "e.g. Flood Warning for Sampalok",
+      "searchAppointments": "Search appointments..."
+    },
+    "modalTitles": {
+      "report": "View Report",
+      "manpower": "View Manpower Request",
+      "reservation": "View Reservation",
+      "appointment": "View Appointment"
+    },
+    "modalHelp": {
+      "report": "Review complete report details, then apply a status action.",
+      "manpower": "Review manpower request details and update its status.",
+      "reservation": "Review reservation details and manage the booking.",
+      "appointment": "Review appointment details and manage scheduling."
+    },
     "login": {
       "heading": "Administrator Login",
       "sub": "Sign in to manage the barangay portal",
@@ -913,7 +959,14 @@
       "heading": "New Incident Report",
       "dismiss": "Dismiss",
       "loadingReports": "Loading reports...",
-      "viewReports": "View Reports"
+      "viewReports": "View Reports",
+      "singleHeading": "A new report just arrived.",
+      "multipleHeading": "{count} new reports just arrived.",
+      "reviewList": "Please review the reports list for details.",
+      "reportReceived": "Report received: {names}",
+      "waitingReview": "A new report is waiting for review.",
+      "latestReports": "Latest reports: {names}",
+      "multipleWaiting": "Multiple reports are waiting for review."
     },
     "dashboard": {
       "opsEyebrow": "Municipal Operations Command",
@@ -924,6 +977,15 @@
     }
   },
   "components": {
+    "healthEventsManager": {
+      "heading": "Events and queue access",
+      "total": "{count} total",
+      "openQueue": "Open",
+      "closeQueue": "Close",
+      "deleting": "Deleting...",
+      "confirmDelete": "Delete the scheduled event \"{title}\"?",
+      "deleteFailed": "Failed to delete health event."
+    },
     "activeQueueDashboard": {
       "monitoring": "Monitoring",
       "healthQueueDashboard": "Health queue dashboard",

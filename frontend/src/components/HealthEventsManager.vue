@@ -3,7 +3,7 @@
     <div class="manager-head">
       <div>
         <span class="eyebrow">{{ t('common.healthCenter') }}</span>
-        <h3>Events and queue access</h3>
+        <h3>{{ t('components.healthEventsManager.heading') }}</h3>
       </div>
       <button class="ghost-button" type="button" @click="load" :disabled="loading">
         <i :class="loading ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-rotate-right'"></i>
@@ -23,7 +23,7 @@
       <div class="form-actions">
         <button class="primary-button" type="submit" :disabled="saving">
           <i :class="saving ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-floppy-disk'"></i>
-          {{ editingId ? 'Save Changes' : 'Create Event' }}
+          {{ editingId ? t('common.ui.saveChanges') : t('common.ui.createEvent') }}
         </button>
         <button type="button" class="ghost-button" @click="resetForm">{{ t('common.ui.reset') }}</button>
       </div>
@@ -31,7 +31,7 @@
 
     <div class="event-toolbar">
       <h4>{{ t('common.ui.scheduledEvents') }}</h4>
-      <span class="fine-print">{{ events.length }} total</span>
+      <span class="fine-print">{{ t('components.healthEventsManager.total', { count: events.length }) }}</span>
     </div>
 
     <div v-if="loading" class="empty-state">{{ t('common.ui.loadingHealthEvents') }}</div>
@@ -41,15 +41,15 @@
         <div class="event-main">
           <div class="event-title">
             <strong>{{ ev.title }}</strong>
-            <span class="queue-pill" :class="{ open: ev.isQueueOpen }">{{ ev.isQueueOpen ? 'Queue open' : 'Queue closed' }}</span>
+            <span class="queue-pill" :class="{ open: ev.isQueueOpen }">{{ ev.isQueueOpen ? t('common.ui.queueOpen') : t('common.ui.queueClosed') }}</span>
           </div>
-          <div class="fine-print">{{ formatDate(ev.eventDate) }} | {{ ev.startTime }} - {{ ev.endTime }} | Prefix: {{ ev.prefix }}</div>
+          <div class="fine-print">{{ formatDate(ev.eventDate) }} | {{ ev.startTime }} - {{ ev.endTime }} | {{ t('common.ui.prefix') }}: {{ ev.prefix }}</div>
           <p v-if="ev.description" class="event-description">{{ ev.description }}</p>
         </div>
         <div class="event-actions">
           <button class="ghost-button" type="button" @click="toggleQueue(ev)">
             <i :class="ev.isQueueOpen ? 'fa-solid fa-lock' : 'fa-solid fa-unlock'"></i>
-            {{ ev.isQueueOpen ? 'Close' : 'Open' }}
+            {{ ev.isQueueOpen ? t('components.healthEventsManager.closeQueue') : t('components.healthEventsManager.openQueue') }}
           </button>
           <button class="ghost-button" type="button" @click="editEvent(ev)">
             <i class="fa-solid fa-pen"></i>
@@ -57,7 +57,7 @@
           </button>
           <button class="ghost-button danger-button" type="button" @click="deleteEvent(ev)" :disabled="deletingId === ev._id">
             <i :class="deletingId === ev._id ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-trash'"></i>
-            {{ deletingId === ev._id ? 'Deleting...' : t('common.ui.delete') }}
+            {{ deletingId === ev._id ? t('components.healthEventsManager.deleting') : t('common.ui.delete') }}
           </button>
         </div>
       </article>
@@ -127,7 +127,7 @@ const editEvent = (ev) => {
 };
 
 const deleteEvent = async (ev) => {
-  if (!globalThis.confirm(`Delete the scheduled event "${ev.title}"?`)) return;
+  if (!globalThis.confirm(t('components.healthEventsManager.confirmDelete', { title: ev.title }))) return;
 
   deletingId.value = ev._id;
   try {
@@ -135,7 +135,7 @@ const deleteEvent = async (ev) => {
     if (editingId.value === ev._id) resetForm();
     await load();
   } catch (error) {
-    globalThis.alert(error.message || 'Failed to delete health event.');
+    globalThis.alert(t('components.healthEventsManager.deleteFailed'));
   } finally {
     deletingId.value = '';
   }
