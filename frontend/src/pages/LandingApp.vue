@@ -709,8 +709,22 @@
                                         <p v-if="hasRegisterError('sex')" class="field-error">{{ registerFieldErrors.sex }}</p>
                                     </div>
                                     <div :class="registerInputClass('birthDate')">
-                                        <label for="reg-birthdate">{{ t('common.ui.birthDate') }} <span class="required-mark">*</span></label>
-                                        <input id="reg-birthdate" name="birthDate" v-model="registerForm.birthDate" type="date" autocomplete="bday" required :min="oldestRegistrationBirthDate" :max="youngestRegistrationBirthDate" :aria-invalid="hasRegisterError('birthDate')">
+                                        <label :for="isMobileBirthDatePicker ? 'reg-birth-month' : 'reg-birthdate'">{{ t('common.ui.birthDate') }} <span class="required-mark">*</span></label>
+                                        <div v-if="isMobileBirthDatePicker" class="mobile-birthdate-picker">
+                                            <select id="reg-birth-month" v-model="mobileBirthMonth" required :aria-invalid="hasRegisterError('birthDate')" @change="updateMobileBirthDate">
+                                                <option value="" disabled>Month</option>
+                                                <option v-for="month in mobileBirthMonths" :key="month.value" :value="month.value" :disabled="month.disabled">{{ month.label }}</option>
+                                            </select>
+                                            <select v-model="mobileBirthDay" required aria-label="Birth day" :aria-invalid="hasRegisterError('birthDate')" @change="updateMobileBirthDate">
+                                                <option value="" disabled>Day</option>
+                                                <option v-for="day in mobileBirthDays" :key="day.value" :value="day.value" :disabled="day.disabled">{{ day.label }}</option>
+                                            </select>
+                                            <select v-model="mobileBirthYear" required aria-label="Birth year" :aria-invalid="hasRegisterError('birthDate')" @change="updateMobileBirthDate">
+                                                <option value="" disabled>Year</option>
+                                                <option v-for="year in mobileBirthYears" :key="year" :value="year">{{ year }}</option>
+                                            </select>
+                                        </div>
+                                        <input v-else id="reg-birthdate" name="birthDate" v-model="registerForm.birthDate" type="date" autocomplete="bday" required :min="oldestRegistrationBirthDate" :max="youngestRegistrationBirthDate" :aria-invalid="hasRegisterError('birthDate')">
                                         <p v-if="hasRegisterError('birthDate')" class="field-error">{{ registerFieldErrors.birthDate }}</p>
                                     </div>
                                 </div>
@@ -1191,6 +1205,81 @@ const registrationBirthDateLimit = (yearsAgo) => {
 };
 const oldestRegistrationBirthDate = registrationBirthDateLimit(120);
 const youngestRegistrationBirthDate = registrationBirthDateLimit(18);
+const isMobileBirthDatePicker = ref(false);
+const mobileBirthMonth = ref('');
+const mobileBirthDay = ref('');
+const mobileBirthYear = ref('');
+const mobileBirthMonthLabels = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+];
+let mobileBirthDateMediaQuery = null;
+
+const mobileBirthYears = computed(() => {
+    const oldestYear = Number(oldestRegistrationBirthDate.slice(0, 4));
+    const youngestYear = Number(youngestRegistrationBirthDate.slice(0, 4));
+    return Array.from(
+        { length: youngestYear - oldestYear + 1 },
+        (_, index) => String(youngestYear - index)
+    );
+});
+
+const isAllowedRegistrationBirthDate = (value) => (
+    value >= oldestRegistrationBirthDate && value <= youngestRegistrationBirthDate
+);
+
+const mobileBirthMonths = computed(() => mobileBirthMonthLabels.map((label, index) => {
+    const value = String(index + 1).padStart(2, '0');
+    if (!mobileBirthYear.value) return { label, value, disabled: false };
+
+    const lastDay = new Date(Number(mobileBirthYear.value), index + 1, 0).getDate();
+    const firstDate = `${mobileBirthYear.value}-${value}-01`;
+    const lastDate = `${mobileBirthYear.value}-${value}-${String(lastDay).padStart(2, '0')}`;
+    return {
+        label,
+        value,
+        disabled: lastDate < oldestRegistrationBirthDate || firstDate > youngestRegistrationBirthDate
+    };
+}));
+
+const mobileBirthDays = computed(() => {
+    if (!mobileBirthYear.value || !mobileBirthMonth.value) return [];
+
+    const dayCount = new Date(Number(mobileBirthYear.value), Number(mobileBirthMonth.value), 0).getDate();
+    return Array.from({ length: dayCount }, (_, index) => {
+        const value = String(index + 1).padStart(2, '0');
+        const dateValue = `${mobileBirthYear.value}-${mobileBirthMonth.value}-${value}`;
+        return { label: index + 1, value, disabled: !isAllowedRegistrationBirthDate(dateValue) };
+    });
+});
+
+const updateMobileBirthDate = () => {
+    const selectedMonth = mobileBirthMonths.value.find((month) => month.value === mobileBirthMonth.value);
+    if (selectedMonth?.disabled) mobileBirthMonth.value = '';
+
+    const selectedDay = mobileBirthDays.value.find((day) => day.value === mobileBirthDay.value);
+    if (mobileBirthDay.value && (!selectedDay || selectedDay.disabled)) mobileBirthDay.value = '';
+
+    if (!mobileBirthYear.value || !mobileBirthMonth.value || !mobileBirthDay.value) {
+        registerForm.birthDate = '';
+        return;
+    }
+
+    const selectedDate = `${mobileBirthYear.value}-${mobileBirthMonth.value}-${mobileBirthDay.value}`;
+    registerForm.birthDate = isAllowedRegistrationBirthDate(selectedDate) ? selectedDate : '';
+};
+
+const syncMobileBirthDateParts = (value) => {
+    const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    mobileBirthYear.value = match?.[1] || '';
+    mobileBirthMonth.value = match?.[2] || '';
+    mobileBirthDay.value = match?.[3] || '';
+};
+
+const handleBirthDateMediaChange = (event) => {
+    isMobileBirthDatePicker.value = event.matches;
+    if (event.matches) syncMobileBirthDateParts(registerForm.birthDate);
+};
 
 const limitGuestIncidentDateToToday = () => {
     if (guestReportForm.incidentDate && guestReportForm.incidentDate > todayDate) {
@@ -1532,6 +1621,13 @@ watch(registerHasSuffix, (hasSuffix) => {
     if (!hasSuffix) {
         registerForm.suffix = '';
     }
+});
+
+watch(() => registerForm.birthDate, (value) => {
+    const mobileValue = mobileBirthYear.value && mobileBirthMonth.value && mobileBirthDay.value
+        ? `${mobileBirthYear.value}-${mobileBirthMonth.value}-${mobileBirthDay.value}`
+        : '';
+    if (value !== mobileValue) syncMobileBirthDateParts(value);
 });
 
 watch(
@@ -2400,6 +2496,16 @@ const announcements = computed(() => [
 ]);
 
 onMounted(() => {
+    mobileBirthDateMediaQuery = globalThis.matchMedia?.('(max-width: 768px), (pointer: coarse)') || null;
+    if (mobileBirthDateMediaQuery) {
+        handleBirthDateMediaChange(mobileBirthDateMediaQuery);
+        if (mobileBirthDateMediaQuery.addEventListener) {
+            mobileBirthDateMediaQuery.addEventListener('change', handleBirthDateMediaChange);
+        } else {
+            mobileBirthDateMediaQuery.addListener?.(handleBirthDateMediaChange);
+        }
+    }
+
     const pendingEmail = getPendingOtpEmail();
     if (pendingEmail) {
         pendingOtpEmail.value = pendingEmail;
@@ -2423,6 +2529,13 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+    if (mobileBirthDateMediaQuery?.removeEventListener) {
+        mobileBirthDateMediaQuery.removeEventListener('change', handleBirthDateMediaChange);
+    } else {
+        mobileBirthDateMediaQuery?.removeListener?.(handleBirthDateMediaChange);
+    }
+    mobileBirthDateMediaQuery = null;
+
     if (locationMapObserver) {
         locationMapObserver.disconnect();
         locationMapObserver = null;
@@ -2847,6 +2960,17 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     color: #1a1a1a;
     transition: all 0.3s ease;
     font-family: inherit;
+}
+
+.mobile-birthdate-picker {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.8fr) minmax(0, 1fr);
+    gap: 8px;
+}
+
+.mobile-birthdate-picker select {
+    min-width: 0;
+    padding-right: 8px;
 }
 
 .input-group input:hover,
