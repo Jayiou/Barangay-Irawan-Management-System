@@ -287,7 +287,7 @@
                                             <span>{{ t('portal.profile.labels.zone') }}</span>
                                             <input v-model="profile.zone" type="text" :placeholder="t('common.ui.enterZone')" required>
                                         </label>
-                                        <label class="form-span-2"><span>{{ t('portal.profile.labels.occupation') }}</span><input v-model="profile.occupation" type="text" placeholder="Ex. Teacher, Entrepreneur"></label>
+                                        <label class="form-span-2"><span>{{ t('portal.profile.labels.occupation') }}</span><input v-model="profile.occupation" type="text" :placeholder="t('portal.placeholders.occupation')"></label>
                                     </div>
                                     <div class="profile-form-actions">
                                         <button type="button" class="ghost-button" @click="cancelProfileEdit">{{ t('portal.profile.buttons.discardChanges') }}</button>
@@ -777,8 +777,8 @@
                             </div>
                         </div>
 
-                        <label><span>{{ t('landing.formLabels.purpose') }}</span><input v-model="appointmentForm.purpose" type="text" required placeholder="What is this meeting about?"></label>
-                        <button type="submit" class="primary-button" :disabled="!canSubmitAppointment">{{ isSubmitting ? 'Submitting...' : 'Submit Request' }}</button>
+                        <label><span>{{ t('landing.formLabels.purpose') }}</span><input v-model="appointmentForm.purpose" type="text" required :placeholder="t('portal.placeholders.appointmentPurpose')"></label>
+                        <button type="submit" class="primary-button" :disabled="!canSubmitAppointment">{{ isSubmitting ? t('portal.actions.submitting') : t('portal.actions.submitRequest') }}</button>
                     </form>
                 </div>
 
@@ -835,7 +835,7 @@
                         <div class="facility-slot-note" v-if="reservationInventoryMessage">{{ reservationInventoryMessage }}</div>
                         <label><span>{{ t('landing.formLabels.purpose') }}</span><input v-model="reservationForm.purpose" type="text" required></label>
                         <label><span>{{ t('common.ui.reservationDetails') }}</span><textarea v-model="reservationForm.reservationDetails" rows="3"></textarea></label>
-                        <button type="submit" class="primary-button" :disabled="!canSubmitReservation">{{ isSubmitting ? 'Submitting...' : 'Submit Reservation' }}</button>
+                        <button type="submit" class="primary-button" :disabled="!canSubmitReservation">{{ isSubmitting ? t('portal.actions.submitting') : t('portal.actions.submitReservation') }}</button>
                     </form>
                     <div class="facility-slot-note" v-if="!reservationRequiresQuantity && facilityAvailability">{{ facilityAvailability }}</div>
                 </div>
@@ -855,14 +855,14 @@
                                 <option value="other">{{ t('common.ui.other') }}</option>
                             </select>
                         </label>
-                        <label><span>{{ t('common.ui.eventRequestTitle') }}</span><input v-model="manpowerForm.title" type="text" required placeholder="Ex. Fiesta parade security"></label>
+                        <label><span>{{ t('common.ui.eventRequestTitle') }}</span><input v-model="manpowerForm.title" type="text" required :placeholder="t('portal.placeholders.manpowerTitle')"></label>
                         <label><span>{{ t('landing.nav.location') }}</span><input v-model="manpowerForm.requestLocation" type="text" required :placeholder="t('common.ui.streetVenue')"></label>
                         <div class="facility-slot-grid">
                             <label><span>{{ t('landing.formLabels.incidentDate') }}</span><input v-model="manpowerForm.requestDate" type="date" :min="todayDate" required></label>
                             <label><span>{{ t('common.ui.time') }}</span><input v-model="manpowerForm.requestTime" type="time" required></label>
                         </div>
                         <div class="facility-slot-grid">
-                            <label><span>{{ t('common.ui.estimatedDuration') }}</span><input v-model="manpowerForm.estimatedDuration" type="text" required placeholder="Ex. 3 hours"></label>
+                            <label><span>{{ t('common.ui.estimatedDuration') }}</span><input v-model="manpowerForm.estimatedDuration" type="text" required :placeholder="t('portal.placeholders.estimatedDuration')"></label>
                             <label><span>{{ t('common.ui.personnelNeeded') }}</span><input v-model.number="manpowerForm.requestedPersonnelCount" type="number" min="1" required></label>
                         </div>
                         <label>
@@ -874,8 +874,8 @@
                                 <option value="urgent">{{ t('common.ui.urgent') }}</option>
                             </select>
                         </label>
-                        <label><span>{{ t('common.ui.descriptionDetails') }}</span><textarea v-model="manpowerForm.description" rows="4" required placeholder="Describe the event, expected crowd, route, or duties needed."></textarea></label>
-                        <button type="submit" class="primary-button" :disabled="isSubmitting">{{ isSubmitting ? 'Submitting...' : 'Submit Manpower Request' }}</button>
+                        <label><span>{{ t('common.ui.descriptionDetails') }}</span><textarea v-model="manpowerForm.description" rows="4" required :placeholder="t('portal.placeholders.manpowerDescription')"></textarea></label>
+                        <button type="submit" class="primary-button" :disabled="isSubmitting">{{ isSubmitting ? t('portal.actions.submitting') : t('portal.actions.submitManpower') }}</button>
                     </form>
                 </div>
 
@@ -934,7 +934,7 @@
                             </div>
                         </div>
                         <label><span>{{ t('landing.formLabels.priority') }}</span><select v-model="reportForm.priority"><option value="low">{{ t('common.ui.low') }}</option><option value="medium">{{ t('common.ui.medium') }}</option><option value="high">{{ t('common.ui.high') }}</option><option value="emergency">{{ t('common.ui.emergency') }}</option></select></label>
-                        <button type="submit" class="primary-button" :disabled="isSubmitting">{{ isSubmitting ? 'Submitting...' : 'Submit Report' }}</button>
+                        <button type="submit" class="primary-button" :disabled="isSubmitting">{{ isSubmitting ? t('portal.actions.submitting') : t('portal.actions.submitReport') }}</button>
                     </form>
                 </div>
                 <div v-if="activeModal === 'document'">
@@ -962,7 +962,7 @@
                             <input v-model="documentForm.purpose" type="text" :required="isStatusOnlyDocumentType" :placeholder="isStatusOnlyDocumentType ? t('common.ui.describeRequest') : t('common.ui.reasonForRequest')">
                         </label>
 
-                        <button type="submit" class="primary-button" :disabled="isSubmitting">{{ isSubmitting ? 'Submitting...' : (editingDocumentRequestId ? 'Save Changes' : 'Submit Request') }}</button>
+                        <button type="submit" class="primary-button" :disabled="isSubmitting">{{ isSubmitting ? t('portal.actions.submitting') : (editingDocumentRequestId ? t('common.ui.saveChanges') : t('portal.actions.submitRequest')) }}</button>
                     </form>
                 </div>
             </dialog>
@@ -1078,6 +1078,7 @@ import { APPOINTMENT_CATEGORY_OPTIONS, filterOfficialsByAppointmentCategory, get
 import { buildFacilityInventoryPeakSummary, buildFacilityTimeOptions, formatFacilityRange, FACILITY_ITEM_OPTIONS, getFacilityItemLabel, getFacilityReservationQuantity, getMinimumFacilityReservationDate, getFacilityItemOption } from '@/shared/facilityTimeSlots';
 import { UPLOAD_SIZE_NOTE, getFileSizeError, getFilesSizeError } from '@/shared/uploadLimits';
 import { getPasswordRequirementRules } from '@/shared/passwordRules';
+import { localizeFeedbackMessage } from '@/shared/localizedFeedback';
 import { usePortalAuth } from '@/composables/usePortalAuth';
 import { usePortalData } from '@/composables/usePortalData';
 import { usePortalForms } from '@/composables/usePortalForms';
@@ -1087,17 +1088,21 @@ import { useDocuments } from '@/composables/useDocuments';
 // Composables
 const { user, initializing, ensureResident, logout } = usePortalAuth();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const PORTAL_VIEW_STORAGE_KEY = 'barangayPortalCurrentView';
 const PORTAL_VIEWS = new Set(['appointments', 'documents', 'reservations', 'manpower', 'reports', 'disaster', 'profile', 'health']);
 
 const confirmLogout = () => {
-    if (confirm("Are you sure you want to log out?")) {
+    if (confirm(t('portal.actions.logoutConfirm'))) {
         logout();
     }
 };
-const { statusMessage, statusError, reservations, reports, manpowerRequests, appointments, officials, disasterAdvisories, facilityAvailability, facilityAvailabilityDetails, profile, setStatus, loadAll, saveProfile, loadProfile, loadFacilityAvailability } = usePortalData();
+const { statusMessage, statusError, reservations, reports, manpowerRequests, appointments, officials, disasterAdvisories, facilityAvailability, facilityAvailabilityDetails, profile, setStatus: setPortalStatus, loadAll, saveProfile, loadProfile, loadFacilityAvailability } = usePortalData();
+const setStatus = (message, isError = false) => setPortalStatus(
+    localizeFeedbackMessage({ message, isError, locale: locale.value, t }),
+    isError
+);
 const { reservationForm, manpowerForm, reportForm, reportProofFiles, submitReservation, submitManpowerRequest, submitReport } = usePortalForms();
 const { getAvailableSlots, requestAppointment } = useAppointments();
 const { documentRequests, loadMyDocuments, createDocumentRequest, editDocumentRequest, deleteDocumentRequest, requestDocumentRevision } = useDocuments();
@@ -1797,14 +1802,15 @@ const handleSubmitAppointment = async () => {
 };
 // Computed properties
 const viewTitle = computed(() => ({
-    profile: 'Manage your personal information',
-    
-    reservations: 'Reserve facilities for events',
-    manpower: 'Request barangay manpower support',
-    reports: 'Submit and monitor your reports',
-    appointments: 'Schedule meetings with barangay officials',
-    disaster: 'View weather and evacuation advisories'
-}[currentView.value]));
+    profile: t('portal.viewDescriptions.profile'),
+    reservations: t('portal.viewDescriptions.reservations'),
+    manpower: t('portal.viewDescriptions.manpower'),
+    reports: t('portal.viewDescriptions.reports'),
+    appointments: t('portal.viewDescriptions.appointments'),
+    documents: t('portal.viewDescriptions.documents'),
+    disaster: t('portal.viewDescriptions.disaster'),
+    health: t('portal.viewDescriptions.health')
+}[currentView.value] || ''));
 
 const normalizeLabel = (value) => {
     if (!value) return 'Unspecified';
@@ -1972,7 +1978,10 @@ const filteredDocumentRequests = computed(() => sortDocumentRequestsByLatestActi
 
 const pagedDocumentRequests = computed(() => paginateTable(filteredDocumentRequests.value, documentPage.value));
 
-const reportTypeOptions = REPORT_TYPE_OPTIONS;
+const reportTypeOptions = computed(() => REPORT_TYPE_OPTIONS.map((option) => ({
+    ...option,
+    label: t(`reportTypes.${option.value}.label`)
+})));
 
 const formatLocalDateInputValue = (date = new Date()) => {
     const year = date.getFullYear();
@@ -1991,7 +2000,15 @@ const limitIncidentDateToToday = () => {
 };
 
 const currentReportTypeConfig = computed(() => {
-    return REPORT_TYPE_CONFIG[reportForm.reportType] || REPORT_TYPE_CONFIG.other;
+    const key = REPORT_TYPE_CONFIG[reportForm.reportType] ? reportForm.reportType : 'other';
+    const config = REPORT_TYPE_CONFIG[key];
+    return {
+        ...config,
+        label: t(`reportTypes.${key}.label`),
+        descriptionPlaceholder: t(`reportTypes.${key}.descriptionPlaceholder`),
+        locationHint: t(`reportTypes.${key}.locationHint`),
+        proofLabel: t(`reportTypes.${key}.proofLabel`)
+    };
 });
 
 

@@ -352,10 +352,10 @@
                                 <div style="display: grid; gap: 8px; padding: 12px; border: 1px dashed #c7d1cc; border-radius: 8px;">
                                     <span style="font-weight: 600; color: #3a4e43;">{{ t('landing.formLabels.currentLocationOptional') }}</span>
                                     <button type="button" class="ghost-button" @click="captureGuestCurrentLocation" :disabled="guestLocatingPosition">
-                                        {{ guestLocatingPosition ? 'Getting location...' : 'Use My Current Location' }}
+                                        {{ guestLocatingPosition ? t('landing.formLabels.gettingLocation') : t('landing.formLabels.useCurrentLocation') }}
                                     </button>
                                     <small style="color: #6b7f74; line-height: 1.5; background: rgba(58, 78, 67, 0.05); padding: 8px; border-radius: 4px;" v-html="t('landing.auth.guestReport.safariTip')"></small>
-                                    <small v-if="guestHasCapturedCoordinates" style="color: #4f6b5d;">Pinned: {{ guestReportForm.locationLatitude }}, {{ guestReportForm.locationLongitude }} (±{{ guestReportForm.locationAccuracy || 'N/A' }}m)</small>
+                                    <small v-if="guestHasCapturedCoordinates" style="color: #4f6b5d;">{{ t('landing.formLabels.pinnedLocation', { latitude: guestReportForm.locationLatitude, longitude: guestReportForm.locationLongitude, accuracy: guestReportForm.locationAccuracy || 'N/A' }) }}</small>
                                     <iframe
                                         v-if="guestReportMapEmbedUrl"
                                         :src="guestReportMapEmbedUrl"
@@ -371,7 +371,7 @@
                                     <input type="file" accept="image/jpeg,image/png,image/jpg" multiple @change="handleGuestReportProofFiles" required>
                                 </label>
                                 <small class="fine-print">{{ UPLOAD_SIZE_NOTE }}</small>
-                                <small v-if="guestReportProofFiles.length" style="color: #4f6b5d;">{{ guestReportProofFiles.length }} file(s) selected</small>
+                                <small v-if="guestReportProofFiles.length" style="color: #4f6b5d;">{{ t('landing.messages.filesSelected', { count: guestReportProofFiles.length }) }}</small>
 
                                 <div class="two-col-grid">
                                     <div class="input-group">
@@ -1145,6 +1145,7 @@ import { REPORT_TYPE_CONFIG } from '@/shared/reportTypeConfig';
 import { APPOINTMENT_CATEGORY_OPTIONS, filterOfficialsByAppointmentCategory, getMinimumAppointmentDate } from '@/shared/appointmentCategories';
 import { UPLOAD_SIZE_NOTE, getFileSizeError, getFilesSizeError } from '@/shared/uploadLimits';
 import { getPasswordRequirementRules, isStrongPassword } from '@/shared/passwordRules';
+import { localizeFeedbackMessage } from '@/shared/localizedFeedback';
 import { useLandingAuth } from '@/composables/useLandingAuth';
 import { useRecaptcha } from '@/composables/useRecaptcha';
 import { usePasswordReset } from '@/composables/usePasswordReset';
@@ -1198,7 +1199,7 @@ const limitGuestIncidentDateToToday = () => {
     }
 };
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 // Local state
 const activeModal = ref('');
@@ -1289,7 +1290,18 @@ const guestReportMapEmbedUrl = computed(() => {
 
     return `https://maps.google.com/maps?q=${guestReportForm.locationLatitude},${guestReportForm.locationLongitude}&z=16&output=embed`;
 });
-const guestReportTypeConfig = computed(() => REPORT_TYPE_CONFIG[guestReportForm.reportType] || REPORT_TYPE_CONFIG.other);
+const localizeReportTypeConfig = (type) => {
+    const key = REPORT_TYPE_CONFIG[type] ? type : 'other';
+    const config = REPORT_TYPE_CONFIG[key];
+    return {
+        ...config,
+        label: t(`reportTypes.${key}.label`),
+        descriptionPlaceholder: t(`reportTypes.${key}.descriptionPlaceholder`),
+        locationHint: t(`reportTypes.${key}.locationHint`),
+        proofLabel: t(`reportTypes.${key}.proofLabel`)
+    };
+};
+const guestReportTypeConfig = computed(() => localizeReportTypeConfig(guestReportForm.reportType));
 const createGuestAppointmentFormDefaults = () => ({
     category: '',
     officialId: '',
@@ -1582,7 +1594,7 @@ const setStatus = (message, isError = false) => {
         return;
     }
 
-    toastMessage.value = message;
+    toastMessage.value = localizeFeedbackMessage({ message, isError, locale: locale.value, t });
     toastType.value = isError ? 'error' : 'success';
     toastTimer = setTimeout(() => {
         clearToast();
@@ -2366,13 +2378,13 @@ const handleGuestReservationRequest = async () => {
 };
 
 const services = computed(() => [
-    { icon: '📄', title: 'Document Requests', copy: 'Request barangay certificates, clearances, and indigency documents through your resident portal.' },
-    { icon: '🏛', title: texts.value.landing.nav.facilities, copy: 'Reserve community facilities for approved events and barangay activities.', action: 'guest-facility-request' },
-    { icon: '🚩', title: 'Incident Report', copy: 'Non-residents can report incidents or community concerns and receive updates by email.', action: 'guest-report-request' },
-    { icon: '🔔', title: texts.value.landing.sections.announcementsTitle, copy: texts.value.landing.sections.announcementsCopy },
-    { icon: '🛡', title: texts.value.landing.sections.officialsTitle, copy: texts.value.landing.sections.officialsCopy, action: 'guest-appointment-request' },
-    { icon: '📍', title: texts.value.landing.nav.location, copy: 'Find Barangay Irawan Hall and open the map for quick directions.' },
-    { icon: '🏢', title: 'Community Hub', copy: texts.value.landing.sections.servicesCopy }
+    { icon: '📄', title: t('landing.services.documents.title'), copy: t('landing.services.documents.copy') },
+    { icon: '🏛', title: t('landing.services.facilities.title'), copy: t('landing.services.facilities.copy'), action: 'guest-facility-request' },
+    { icon: '🚩', title: t('landing.services.reports.title'), copy: t('landing.services.reports.copy'), action: 'guest-report-request' },
+    { icon: '🔔', title: t('landing.services.announcements.title'), copy: t('landing.services.announcements.copy') },
+    { icon: '🛡', title: t('landing.services.officials.title'), copy: t('landing.services.officials.copy'), action: 'guest-appointment-request' },
+    { icon: '📍', title: t('landing.services.location.title'), copy: t('landing.services.location.copy') },
+    { icon: '🏢', title: t('landing.services.community.title'), copy: t('landing.services.community.copy') }
 ]);
 
 const handleServiceClick = (service) => {

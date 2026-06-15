@@ -90,6 +90,26 @@
     "processing": "Pinoproseso...",
     "confirm": "Kumpirmahin",
     "dismissToast": "Isara ang notification",
+    "feedback": {
+      "requestFailed": "Hindi nakumpleto ang kahilingan. Pakisubukan muli.",
+      "dateFuture": "Hindi maaaring nasa hinaharap ang petsa.",
+      "passwordRequirements": "Kumpletuhin ang lahat ng kinakailangan sa password.",
+      "passwordMismatch": "Hindi magkapareho ang mga bagong password.",
+      "proofRequired": "Mag-upload ng kahit isang larawan bilang patunay para sa uring ito ng ulat.",
+      "dateRequired": "Kailangan ang petsa para sa uring ito ng ulat.",
+      "geolocationUnsupported": "Hindi suportado ng device o browser na ito ang pagkuha ng lokasyon.",
+      "locationCaptured": "Nakuha na ang kasalukuyang lokasyon.",
+      "locationCapturedLowAccuracy": "Nakuha ang lokasyon gamit ang mas mababang accuracy.",
+      "appointmentSubmitted": "Matagumpay na naisumite ang kahilingan ng appointment!",
+      "appointmentCancelled": "Nakansela na ang appointment.",
+      "manpowerCancelled": "Nakansela na ang manpower request.",
+      "passwordUpdated": "Matagumpay na na-update ang password.",
+      "gmailUpdated": "Matagumpay na na-update ang Gmail.",
+      "personnelRequired": "Maglagay ng kahit 1 kinakailangang tauhan.",
+      "profileRequired": "Kumpletuhin muna ang iyong resident profile bago sumali sa pila.",
+      "alreadyInQueue": "Kasali ka na sa pilang ito.",
+      "queueJoined": "Matagumpay kang nakasali sa pila."
+    },
     "ui": {
       "vision": "BISYON",
       "mission": "MISYON",
@@ -419,6 +439,16 @@
       "barangayHallCoveredCourt": "Barangay Hall, Covered Court"
     }
   },
+  "reportTypes": {
+    "noise_complaint": { "label": "Reklamo sa Ingay", "descriptionPlaceholder": "Ilarawan kung kailan, saan, at gaano kadalas nangyayari ang ingay.", "locationHint": "Pinakamalapit na kalye, purok, at palatandaan ng bahay", "proofLabel": "Patunay na larawan" },
+    "disturbance": { "label": "Panggugulo", "descriptionPlaceholder": "Ilarawan ang panggugulo at kung sino ang naaapektuhan.", "locationHint": "Eksaktong lugar kung saan nangyari ang panggugulo", "proofLabel": "Mga suportang larawan" },
+    "sanitation": { "label": "Kalinisan", "descriptionPlaceholder": "Ilarawan ang problema sa kalinisan at kung gaano ito kaapurahan.", "locationHint": "Tukuyin kung saan kailangang maglinis", "proofLabel": "Mga suportang larawan" },
+    "infrastructure": { "label": "Imprastraktura", "descriptionPlaceholder": "Ilarawan ang pinsala, antas ng panganib, at epekto sa trapiko.", "locationHint": "Kanto ng kalye o pinakamalapit na istruktura", "proofLabel": "Mga suportang larawan" },
+    "public_safety": { "label": "Kaligtasan ng Publiko", "descriptionPlaceholder": "Ilarawan ang panganib sa kaligtasan at mga taong naaapektuhan.", "locationHint": "Partikular na pampublikong lugar o ruta", "proofLabel": "Mga suportang larawan" },
+    "animal_related": { "label": "Kaugnay ng Hayop", "descriptionPlaceholder": "Ilarawan ang problema sa hayop at ang napansing kilos nito.", "locationHint": "Lugar kung saan karaniwang nangyayari ang problema", "proofLabel": "Mga suportang larawan" },
+    "disaster": { "label": "Sakuna", "descriptionPlaceholder": "Ilarawan ang kasalukuyang kalagayan at agarang pangangailangan.", "locationHint": "Apektadong zone o evacuation area", "proofLabel": "Mga suportang larawan" },
+    "other": { "label": "Iba Pa", "descriptionPlaceholder": "Ilarawan nang malinaw at kumpleto ang concern.", "locationHint": "Kaugnay na lokasyon ng concern", "proofLabel": "Mga suportang larawan" }
+  },
   "landing": {
     "nav": {
       "home": "Home",
@@ -444,6 +474,15 @@
       "officialsCopy": "Kilalanin ang mga lider at lingkod-bayan na tumutulong sa Barangay Irawan na maghatid ng mas mabilis at malinaw na serbisyo.",
       "announcementsTitle": "Mga Anunsiyo",
       "announcementsCopy": "Manatiling updated sa pinakabagong balita, paalala, at advisories ng barangay."
+    },
+    "services": {
+      "documents": { "title": "Mga Kahilingan ng Dokumento", "copy": "Humiling ng sertipiko, clearance, at indigency document ng barangay sa resident portal." },
+      "facilities": { "title": "Mga Reserbasyon ng Pasilidad", "copy": "Magpareserba ng pasilidad ng komunidad para sa mga aprubadong event at aktibidad ng barangay." },
+      "reports": { "title": "Ulat ng Insidente", "copy": "Maaaring mag-ulat ang mga hindi residente ng insidente o concern ng komunidad at makatanggap ng update sa email." },
+      "announcements": { "title": "Mga Anunsiyo", "copy": "Manatiling updated sa pinakabagong balita, paalala, at advisory ng barangay." },
+      "officials": { "title": "Mga Opisyal ng Barangay", "copy": "Kilalanin ang mga opisyal ng barangay at humiling ng appointment sa available na lingkod-bayan." },
+      "location": { "title": "Lokasyon", "copy": "Hanapin ang Barangay Irawan Hall at buksan ang mapa para sa mabilis na direksyon." },
+      "community": { "title": "Sentro ng Komunidad", "copy": "Kumonekta sa Barangay Irawan at i-access ang mahahalagang serbisyo ng komunidad sa iisang lugar." }
     },
     "actions": {
       "requestOnline": "Humiling online",
@@ -596,6 +635,9 @@
       "pinnedLocation": "Naka-pin: {latitude}, {longitude} (±{accuracy}m)",
       "reservationDetailsHeading": "Mga Detalye ng Reserbasyon"
     },
+    "messages": {
+      "filesSelected": "{count} file ang napili"
+    },
     "placeholders": {
       "describeIncident": "Ilarawan ang nangyari",
       "incidentLocation": "Saan ito nangyari?"
@@ -644,6 +686,14 @@
   },
   "portal": {
     "initializing": "Sinisimulan ang portal...",
+    "actions": {
+      "submitting": "Isinusumite...",
+      "submitRequest": "Isumite ang Kahilingan",
+      "submitReservation": "Isumite ang Reserbasyon",
+      "submitManpower": "Isumite ang Manpower Request",
+      "submitReport": "Isumite ang Ulat",
+      "logoutConfirm": "Sigurado ka bang gusto mong mag-log out?"
+    },
     "nav": {
       "profile": "Aking Profile",
       "appointments": "Appointments",
@@ -773,6 +823,23 @@
     "reports": {
       "locationMapTitle": "Preview ng mapa ng lokasyon ng ulat",
       "eyebrow": "Mga Ulat ng Insidente"
+    },
+    "viewDescriptions": {
+      "profile": "Pamahalaan ang iyong personal na impormasyon",
+      "appointments": "Mag-iskedyul ng pagpupulong sa mga opisyal ng barangay",
+      "documents": "Humiling at subaybayan ang mga dokumento ng barangay",
+      "reservations": "Magpareserba ng pasilidad para sa mga event",
+      "manpower": "Humiling ng tulong mula sa manpower ng barangay",
+      "reports": "Magsumite at subaybayan ang iyong mga ulat",
+      "disaster": "Tingnan ang mga advisory sa panahon at paglikas",
+      "health": "Tingnan ang mga health event at serbisyo sa pila"
+    },
+    "placeholders": {
+      "occupation": "Hal. Guro, Negosyante",
+      "appointmentPurpose": "Tungkol saan ang pagpupulong na ito?",
+      "manpowerTitle": "Hal. Seguridad para sa parada ng pista",
+      "estimatedDuration": "Hal. 3 oras",
+      "manpowerDescription": "Ilarawan ang event, inaasahang dami ng tao, ruta, o mga tungkuling kailangan."
     },
     "modals": {
       "appointmentRequest": "Kahilingan ng Appointment",

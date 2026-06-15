@@ -90,6 +90,26 @@
     "processing": "Processing...",
     "confirm": "Confirm",
     "dismissToast": "Dismiss notification",
+    "feedback": {
+      "requestFailed": "The request could not be completed. Please try again.",
+      "dateFuture": "Date cannot be in the future.",
+      "passwordRequirements": "Please complete all password requirements.",
+      "passwordMismatch": "New passwords do not match.",
+      "proofRequired": "Please upload at least one proof image for this report type.",
+      "dateRequired": "Date is required for this report type.",
+      "geolocationUnsupported": "Geolocation is not supported on this device or browser.",
+      "locationCaptured": "Current location captured.",
+      "locationCapturedLowAccuracy": "Location captured in lower accuracy mode.",
+      "appointmentSubmitted": "Appointment requested successfully!",
+      "appointmentCancelled": "Appointment cancelled.",
+      "manpowerCancelled": "Manpower request cancelled.",
+      "passwordUpdated": "Password updated successfully.",
+      "gmailUpdated": "Gmail updated successfully.",
+      "personnelRequired": "Please enter at least 1 personnel needed.",
+      "profileRequired": "Please complete your resident profile before joining a queue.",
+      "alreadyInQueue": "You are already in this queue.",
+      "queueJoined": "Successfully joined queue."
+    },
     "ui": {
       "vision": "VISION",
       "mission": "MISSION",
@@ -419,6 +439,16 @@
       "barangayHallCoveredCourt": "Barangay Hall, Covered Court"
     }
   },
+  "reportTypes": {
+    "noise_complaint": { "label": "Noise Complaint", "descriptionPlaceholder": "Describe when, where, and how often the noise happens.", "locationHint": "Nearest street, purok, and house landmark", "proofLabel": "Proof (photo evidence)" },
+    "disturbance": { "label": "Disturbance", "descriptionPlaceholder": "Describe the disturbance and who is affected.", "locationHint": "Exact spot where the disturbance happened", "proofLabel": "Supporting photos" },
+    "sanitation": { "label": "Sanitation", "descriptionPlaceholder": "Describe the sanitation issue and urgency.", "locationHint": "Pinpoint where cleanup is needed", "proofLabel": "Supporting photos" },
+    "infrastructure": { "label": "Infrastructure", "descriptionPlaceholder": "Describe the damage, hazard level, and traffic impact.", "locationHint": "Street corner or nearest structure", "proofLabel": "Supporting photos" },
+    "public_safety": { "label": "Public Safety", "descriptionPlaceholder": "Describe the safety risk and people affected.", "locationHint": "Specific public area or route", "proofLabel": "Supporting photos" },
+    "animal_related": { "label": "Animal Related", "descriptionPlaceholder": "Describe the animal issue and observed behavior.", "locationHint": "Where the animal issue usually occurs", "proofLabel": "Supporting photos" },
+    "disaster": { "label": "Disaster", "descriptionPlaceholder": "Describe the current disaster condition and immediate need.", "locationHint": "Affected zone or evacuation area", "proofLabel": "Supporting photos" },
+    "other": { "label": "Other", "descriptionPlaceholder": "Describe the concern clearly and completely.", "locationHint": "Relevant location of the concern", "proofLabel": "Supporting photos" }
+  },
   "landing": {
     "nav": {
       "home": "Home",
@@ -444,6 +474,15 @@
       "officialsCopy": "Meet the leaders and public servants helping Barangay Irawan deliver faster, clearer services.",
       "announcementsTitle": "Announcements",
       "announcementsCopy": "Stay informed with the latest barangay updates, reminders, and emergency advisories."
+    },
+    "services": {
+      "documents": { "title": "Document Requests", "copy": "Request barangay certificates, clearances, and indigency documents through your resident portal." },
+      "facilities": { "title": "Facility Reservations", "copy": "Reserve community facilities for approved events and barangay activities." },
+      "reports": { "title": "Incident Report", "copy": "Non-residents can report incidents or community concerns and receive updates by email." },
+      "announcements": { "title": "Announcements", "copy": "Stay informed with the latest barangay updates, reminders, and emergency advisories." },
+      "officials": { "title": "Barangay Officials", "copy": "Meet barangay officials and request an appointment with an available public servant." },
+      "location": { "title": "Location", "copy": "Find Barangay Irawan Hall and open the map for quick directions." },
+      "community": { "title": "Community Hub", "copy": "Connect with Barangay Irawan and access essential community services in one place." }
     },
     "actions": {
       "requestOnline": "Request online",
@@ -596,6 +635,9 @@
       "gettingLocation": "Getting location...",
       "pinnedLocation": "Pinned: {latitude}, {longitude} (±{accuracy}m)"
     },
+    "messages": {
+      "filesSelected": "{count} file(s) selected"
+    },
     "placeholders": {
       "describeIncident": "Describe what happened",
       "incidentLocation": "Where did it happen?"
@@ -644,6 +686,14 @@
   },
   "portal": {
     "initializing": "Initializing portal...",
+    "actions": {
+      "submitting": "Submitting...",
+      "submitRequest": "Submit Request",
+      "submitReservation": "Submit Reservation",
+      "submitManpower": "Submit Manpower Request",
+      "submitReport": "Submit Report",
+      "logoutConfirm": "Are you sure you want to log out?"
+    },
     "nav": {
       "profile": "My Profile",
       "appointments": "Appointments",
@@ -773,6 +823,23 @@
     "reports": {
       "locationMapTitle": "Report location preview map",
       "eyebrow": "Incident Reports"
+    },
+    "viewDescriptions": {
+      "profile": "Manage your personal information",
+      "appointments": "Schedule meetings with barangay officials",
+      "documents": "Request and monitor barangay documents",
+      "reservations": "Reserve facilities for events",
+      "manpower": "Request barangay manpower support",
+      "reports": "Submit and monitor your reports",
+      "disaster": "View weather and evacuation advisories",
+      "health": "View health events and queue services"
+    },
+    "placeholders": {
+      "occupation": "Ex. Teacher, Entrepreneur",
+      "appointmentPurpose": "What is this meeting about?",
+      "manpowerTitle": "Ex. Fiesta parade security",
+      "estimatedDuration": "Ex. 3 hours",
+      "manpowerDescription": "Describe the event, expected crowd, route, or duties needed."
     },
     "modals": {
       "appointmentRequest": "Appointment Request",
